@@ -2,6 +2,7 @@ using Contentful.Core;
 using ContentfulApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.Security.AccessControl;
 
 namespace ContentfulApp.Controllers
 {
@@ -9,6 +10,7 @@ namespace ContentfulApp.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IContentfulClient _client;
+        
 
         public HomeController(ILogger<HomeController> logger, IContentfulClient client)
         {
@@ -18,22 +20,25 @@ namespace ContentfulApp.Controllers
 
         public async Task<IActionResult> Index()
         {
-            // Retrieve content types from Contentful
             var contentTypes = await _client.GetContentTypes();
 
-            // Extract content type names and store them in a list
             var contentTypeNames = new List<string>();
             foreach (var contentType in contentTypes)
             {
-                contentTypeNames.Add(contentType.SystemProperties.Id); // or Name if you prefer
+                contentTypeNames.Add(contentType.SystemProperties.Id); 
             }
 
-            // Pass the list of content type names to the view
             return View(contentTypeNames);
         }
 
         public IActionResult Privacy()
         {
+            return View();
+        }
+
+        public IActionResult Export() 
+        {
+
             return View();
         }
 

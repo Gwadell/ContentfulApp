@@ -1,0 +1,22 @@
+﻿
+@model ContentfulApp.Models.ExportModel
+
+@using (Html.BeginForm("Export", "Export", FormMethod.Post))
+{
+    @Html.LabelFor(model => model.EnvironmentName)
+    @Html.TextBoxFor(model => model.EnvironmentName)
+
+    @Html.LabelFor(model => model.SpaceId)
+    @Html.TextBoxFor(model => model.SpaceId)
+
+    @Html.LabelFor(model => model.Locales)
+    @Html.TextBoxFor(model => model.Locales)
+
+    @Html.LabelFor(model => model.ContentTypesId)
+    @Html.TextBoxFor(model => model.ContentTypesId)
+
+    @Html.LabelFor(model => model.AccessToken)
+    @Html.TextBoxFor(model => model.AccessToken)
+
+    <input type="submit" value="Export" />
+}
