@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <PackageReference Include="contentful.aspnetcore" Version="7.5.1" />
+    <PackageReference Include="contentful.csharp" Version="7.5.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
 </Project>
