@@ -1,5 +1,8 @@
 using Contentful.Core;
+using Contentful.Core.Models;
+using Contentful.Core.Search;
 using ContentfulApp.Models;
+using ContentfulApp.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using System.Security.AccessControl;
@@ -10,25 +13,55 @@ namespace ContentfulApp.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IContentfulClient _client;
+        private readonly IContentfulManagementClient _managementClient;
         
 
-        public HomeController(ILogger<HomeController> logger, IContentfulClient client)
+        public HomeController(ILogger<HomeController> logger, IContentfulClient client, IContentfulManagementClient contentfulManagementClient)
         {
             _logger = logger;
             _client = client;
+            _managementClient = contentfulManagementClient;
+        }
+
+        public async Task<IActionResult> ExportContentTypes(List<string> contentTypesList, List<string> localesList)
+        {
+            var exportedDataList = new List<ContentTypeExportData>();
+
+            foreach (var contenttype in contentTypesList)
+            {
+                var fetchedItemsList = new List<dynamic>(); 
+                int totalItemsCOunt = 0;
+                int fetchedItemsCount = 0;
+
+                var queryBuilder = QueryBuilder<dynamic>.New.ContentTypeIs(contenttype).Limit(10); 
+
+                do
+                {
+                    var entries = await _client.GetEntries<dynamic>(queryBuilder);
+                    totalItemsCOunt = entries.Total;
+                    fetchedItemsCount += entries.Items.Count();
+
+                    foreach (var entry in entries.Items)
+                    {
+                        fetchedItemsList.Add(entry);
+                    }
+                } while (fetchedItemsCount < totalItemsCOunt);
+
+                var exportedData = new ContentTypeExportData
+                {
+                    ContentType = contenttype,
+                    Items = fetchedItemsList
+                };
+
+                exportedDataList.Add(exportedData);
+            }
+
+            return View(exportedDataList);
         }
 
         public async Task<IActionResult> Index()
         {
-            var contentTypes = await _client.GetContentTypes();
-
-            var contentTypeNames = new List<string>();
-            foreach (var contentType in contentTypes)
-            {
-                contentTypeNames.Add(contentType.SystemProperties.Id); 
-            }
-
-            return View(contentTypeNames);
+            return View();
         }
 
         public IActionResult Privacy()

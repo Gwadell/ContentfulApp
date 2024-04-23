@@ -6,12 +6,14 @@ using ContentfulApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Runtime.CompilerServices;
+using ContentfulApp.Models.DTO;
+using System.Dynamic;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace ContentfulApp.Controllers
 {
     public class ExportController : Controller
     {
-
         public IActionResult Index()
         {
             return View();
@@ -20,40 +22,41 @@ namespace ContentfulApp.Controllers
         [HttpPost]
         public async Task<ActionResult> Export(ExportModel model)
         {
-            var httpClient = new HttpClient();
+            int skip = 0;
+            const int batchSize = 80;
 
+            var httpClient = new HttpClient();
             var options = new ContentfulOptions
             {
                 DeliveryApiKey = model.AccessToken,
                 SpaceId = model.SpaceId,
-                Environment = model.EnvironmentName
+                Environment = model.Environment
             };
-
             var client = new ContentfulClient(httpClient, options);
 
-            // Define variables for pagination
-            int skip = 0;
-            const int batchSize = 80;
+            List<EntryPlp> allEntries = new List<EntryPlp>();
 
-            List<Entry<dynamic>> allEntries = new List<Entry<dynamic>>();
             do
             {
-                var queryBuilder = new QueryBuilder<Entry<dynamic>>();
+                var queryBuilder = new QueryBuilder<EntryPlp>();
 
-                queryBuilder.ContentTypeIs(model.ContentTypesId);
-                queryBuilder.LocaleIs(model.Locales);
+                queryBuilder.ContentTypeIs(model.ContentType);
+                queryBuilder.LocaleIs(model.Locale);
                 queryBuilder.Skip(skip);
-                queryBuilder.Include(1);
+                queryBuilder.Include(2);
                 queryBuilder.Limit(batchSize);
-                
+
                 var pageEntries = await client.GetEntries(queryBuilder);
+
+
+                dynamic response = JsonConvert.SerializeObject(pageEntries);
 
                 allEntries.AddRange(pageEntries);
 
                 skip += batchSize;
             } while (allEntries.Count % batchSize == 0);
 
-            return View();
+            return View(allEntries);
         }
     }
 }
