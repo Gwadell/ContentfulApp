@@ -48,9 +48,6 @@ namespace ContentfulApp.Controllers
 
                 var pageEntries = await client.GetEntries(queryBuilder);
 
-
-                dynamic response = JsonConvert.SerializeObject(pageEntries);
-
                 allEntries.AddRange(pageEntries);
 
                 skip += batchSize;
