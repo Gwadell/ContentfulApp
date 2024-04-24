@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Contentful.AspNetCore;
+using OfficeOpenXml;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,8 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
@@ -26,6 +29,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Export}/{action=Index}/{id?}");
 
 app.Run();

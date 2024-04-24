@@ -1,11 +1,12 @@
 ﻿using Contentful.Core.Models;
 
-namespace ContentfulApp.Models
+namespace ContentfulApp.Models.DTO
 {
-    public class EntryPlp
+    public class EntryPlpDto
     {
-        public SystemProperties Sys { get; set; }
+        //public SystemProperties Sys { get; set; }
 
+        public string Id { get; set; }
         public string InternalName { get; set; }
         public string? Name { get; set; }
         public string ShortDescription { get; set; }

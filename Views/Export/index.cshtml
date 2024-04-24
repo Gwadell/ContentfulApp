@@ -1,0 +1,46 @@
+﻿@model ContentfulApp.Models.ExportModel
+
+@using (Html.BeginForm("Index", "Export", FormMethod.Post, new { id = "exportForm" } ))
+{
+    @Html.LabelFor(model => model.Environment)
+    @Html.TextBoxFor(model => model.Environment)
+
+    @Html.LabelFor(model => model.SpaceId)
+    @Html.TextBoxFor(model => model.SpaceId)
+
+    @Html.LabelFor(model => model.Locale)
+    @Html.TextBoxFor(model => model.Locale)
+
+    @Html.LabelFor(model => model.ContentType)
+    @Html.TextBoxFor(model => model.ContentType)
+
+    @Html.LabelFor(model => model.AccessToken)
+    @Html.TextBoxFor(model => model.AccessToken)
+
+    <input type="submit" value="Export" id="exportButton" />
+}
+
+<div id="downloadLink" style="display:none;">
+    <a id="excelDownloadLink" href="#">Kopiera denna länk för att ladda ner excelfilen</a>
+</div>
+
+@section scripts {
+    <script>
+        $(function () {
+            $('#exportForm').submit(function (event) {
+                event.preventDefault(); // Hindra standardformuläret från att skickas
+
+                $.ajax({
+                    url: $(this).attr('action'), // Åtgärden i kontrollern för att hantera exporten
+                    method: 'POST',
+                    data: $(this).serialize(), // Serialize formulärets data
+                    success: function (response) {
+                        var downloadLink = $('#downloadLink');
+                        downloadLink.show();
+                        $('#excelDownloadLink').attr('href', response); // Lägg till nedladdningslänken
+                    }
+                });
+            });
+        });
+    </script>
+}

@@ -9,6 +9,8 @@ using System.Runtime.CompilerServices;
 using ContentfulApp.Models.DTO;
 using System.Dynamic;
 using Microsoft.AspNetCore.Http.Features;
+using OfficeOpenXml;
+using System.Reflection.Metadata.Ecma335;
 
 namespace ContentfulApp.Controllers
 {
@@ -20,7 +22,7 @@ namespace ContentfulApp.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> Export(ExportModel model)
+        public async Task<ActionResult> Index(ExportModel model)
         {
             int skip = 0;
             const int batchSize = 80;
@@ -34,11 +36,11 @@ namespace ContentfulApp.Controllers
             };
             var client = new ContentfulClient(httpClient, options);
 
-            List<EntryPlp> allEntries = new List<EntryPlp>();
+            List<EntryPlpDto> allEntries = new List<EntryPlpDto>();
 
             do
             {
-                var queryBuilder = new QueryBuilder<EntryPlp>();
+                var queryBuilder = new QueryBuilder<EntryPlpDto>();
 
                 queryBuilder.ContentTypeIs(model.ContentType);
                 queryBuilder.LocaleIs(model.Locale);
@@ -53,7 +55,32 @@ namespace ContentfulApp.Controllers
                 skip += batchSize;
             } while (allEntries.Count % batchSize == 0);
 
-            return View(allEntries);
+            var environmentName = model.Environment == "master" ? "" : model.Environment;
+            var currentDateTime = DateTime.Now.ToString("yyyy-MM-dd-HH-mm"); 
+
+            var excelFileName = $"export-{environmentName}-{currentDateTime}.xlsx";
+            var sheetName = $"{model.ContentType}-{model.Locale}";
+
+            var excelfilePath = Path.Combine(Path.GetTempPath(), excelFileName);
+
+            ExportToExcel(allEntries, excelfilePath, sheetName);
+
+            return Content(excelfilePath);
         }
+
+        
+
+        public static void ExportToExcel<T>(IEnumerable<T> data, string path, string sheetName)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using (var package = new ExcelPackage())
+            {
+                var ws = package.Workbook.Worksheets.Add(sheetName);
+                ws.Cells["A1"].LoadFromCollection(data, true);
+                package.SaveAs(new FileInfo(path));
+            }
+        }
+
+        
     }
 }
