@@ -61,6 +61,12 @@ namespace ContentfulApp.Controllers
 
         public async Task<IActionResult> Index()
         {
+            //var entries = await _client.GetEntries<dynamic>();
+
+            //entries as json
+            //var entriesAsJson = JsonConvert.SerializeObject(entries);
+
+
             return View();
         }
 
