@@ -5,7 +5,7 @@ using System.Xml.Schema;
 namespace ContentfulApp.Models.DTO
 {
    
- class EntryPlpDto
+ class FullEntryDto
     {
         public SystemProperties Sys { get; set; } // id and createdAt
         public string InternalName { get; set; }

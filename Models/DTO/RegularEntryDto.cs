@@ -2,7 +2,7 @@
 
 namespace ContentfulApp.Models.DTO
 {
-    public class EntryBrandDto
+    public class RegularEntryDto
     {
         public SystemProperties Sys { get; set; }
         public string InternalName { get; set; }

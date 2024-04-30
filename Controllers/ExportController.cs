@@ -60,11 +60,11 @@ namespace ContentfulApp.Controllers
                 {
                     var dtoType = contentType switch
                     {
-                        "productListingPage" => typeof(EntryPlpDto),
-                        "brand" => typeof(EntryPlpDto),
-                        "collection" => typeof(EntryPlpDto),
-                        "designer" => typeof(EntryPlpDto),
-                        _ => typeof(EntryBrandDto)
+                        "productListingPage" => typeof(FullEntryDto),
+                        "brand" => typeof(FullEntryDto),
+                        "collection" => typeof(FullEntryDto),
+                        "designer" => typeof(FullEntryDto),
+                        _ => typeof(RegularEntryDto)
                     };
 
                     var entries = await GetEntriesForContentType(client, model, contentType, dtoType, locale);
@@ -172,52 +172,52 @@ namespace ContentfulApp.Controllers
 
         public static Dictionary<string, Type> ContentTypeToExportDtoTypeMap = new Dictionary<string, Type>
         {
-            { "productListingPage", typeof(EntryPlpDtoExport) },
-            { "brand", typeof(EntryPlpDtoExport) },
-            { "collection", typeof(EntryPlpDtoExport) },
-            { "designer", typeof(EntryPlpDtoExport) },
-            { "_default", typeof(EntryBrandDtoExport) }
+            { "productListingPage", typeof(FullExport) },
+            { "brand", typeof(FullExport) },
+            { "collection", typeof(FullExport) },
+            { "designer", typeof(FullExport) },
+            { "_default", typeof(RegularExport) }
         };
 
         private object MapToExportDto(object dto, Type exportDtoType)
         {
             switch (exportDtoType.Name)
             {
-                case nameof(EntryPlpDtoExport) when dto is EntryPlpDto entryPlpDto:
-                    return new EntryPlpDtoExport
+                case nameof(FullExport) when dto is FullEntryDto fullEntryDto:
+                    return new FullExport
                     {
-                        Id = entryPlpDto.Sys.Id,
-                        InternalName = entryPlpDto.InternalName,
-                        Name = entryPlpDto.Name,
-                        IsPrimaryCategory = entryPlpDto.IsPrimaryCategory,
-                        CategoryRank = entryPlpDto.CategoryRank,
-                        ShortDescription = entryPlpDto.ShortDescription,
-                        Filter = entryPlpDto.Filter?._rawFilterData,
-                        //SubPageData = entryPlpDto.SubPageData.Routes,
-                        AdditionalContentDescription = entryPlpDto.GetAdditionalContentDescriptionAsString(), //funkar ej 
-                        Active = entryPlpDto.IsActiveLocale(),
-                        CreateLinksOnProductPages = entryPlpDto.CreateLinksOnProductPages,
-                        UseAsFacet = entryPlpDto.UseAsFacet,
-                        Tags = entryPlpDto.GetTagsAsString(), //funkar ej 
-                        Facets = entryPlpDto.GetFacetsAsString(),
-                        SeoTitle = entryPlpDto.SeoInfo?.Title,
-                        SeoDescription = entryPlpDto.SeoInfo?.Description,
-                        Slug = entryPlpDto.Slug,
-                        CreatedAt = entryPlpDto.Sys.CreatedAt,
-                        Urls = entryPlpDto.GetLastUrl(),
-                        Archived = entryPlpDto.IsArchived(),
-                        H1Title = entryPlpDto.H1Title,
+                        Id = fullEntryDto.Sys.Id,
+                        InternalName = fullEntryDto.InternalName,
+                        Name = fullEntryDto.Name,
+                        IsPrimaryCategory = fullEntryDto.IsPrimaryCategory,
+                        CategoryRank = fullEntryDto.CategoryRank,
+                        ShortDescription = fullEntryDto.ShortDescription,
+                        Filter = fullEntryDto.Filter?._rawFilterData,
+                        //SubPageData = fullEntryDto.SubPageData.Routes,
+                        AdditionalContentDescription = fullEntryDto.GetAdditionalContentDescriptionAsString(), //funkar ej 
+                        Active = fullEntryDto.IsActiveLocale(),
+                        CreateLinksOnProductPages = fullEntryDto.CreateLinksOnProductPages,
+                        UseAsFacet = fullEntryDto.UseAsFacet,
+                        Tags = fullEntryDto.GetTagsAsString(), //funkar ej 
+                        Facets = fullEntryDto.GetFacetsAsString(),
+                        SeoTitle = fullEntryDto.SeoInfo?.Title,
+                        SeoDescription = fullEntryDto.SeoInfo?.Description,
+                        Slug = fullEntryDto.Slug,
+                        CreatedAt = fullEntryDto.Sys.CreatedAt,
+                        Urls = fullEntryDto.GetLastUrl(),
+                        Archived = fullEntryDto.IsArchived(),
+                        H1Title = fullEntryDto.H1Title,
                         //archived
                     };
-                case nameof(EntryBrandDtoExport) when dto is EntryBrandDto entryBrandDto:
-                    return new EntryBrandDtoExport
+                case nameof(RegularExport) when dto is RegularEntryDto regularEntryDto:
+                    return new RegularExport
                     {
-                        Id = entryBrandDto.Sys.Id,
-                        InternalName = entryBrandDto.InternalName,
-                        Name = entryBrandDto.Name,
-                        Slug = entryBrandDto.Slug,
-                        Urls = entryBrandDto.GetLastUrl(),
-                        CreatedAt = entryBrandDto.Sys.CreatedAt,
+                        Id = regularEntryDto.Sys.Id,
+                        InternalName = regularEntryDto.InternalName,
+                        Name = regularEntryDto.Name,
+                        Slug = regularEntryDto.Slug,
+                        Urls = regularEntryDto.GetLastUrl(),
+                        CreatedAt = regularEntryDto.Sys.CreatedAt,
                         //archived
                         //tags
                     };

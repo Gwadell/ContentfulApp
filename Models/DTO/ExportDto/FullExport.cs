@@ -1,7 +1,7 @@
 ﻿
 namespace ContentfulApp.Models.DTO.ExportDto
 {
-    public class EntryPlpDtoExport
+    public class FullExport
     {
         public string Id { get; set; }
         public string InternalName { get; set; }

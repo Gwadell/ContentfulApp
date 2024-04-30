@@ -1,6 +1,6 @@
 ﻿namespace ContentfulApp.Models.DTO.ExportDto
 {
-    public class EntryBrandDtoExport
+    public class RegularExport
     {
         public string Id { get; set; }
         public string InternalName { get; set; }
