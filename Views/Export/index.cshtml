@@ -17,7 +17,6 @@
         
     }
 
-
     #excelDownloadLink {
         text-decoration: underline;
     }
@@ -66,6 +65,7 @@
 
     @Html.LabelFor(model => model.AccessToken)
     @Html.TextBoxFor(model => model.AccessToken)
+@*  @Html.TextBoxFor(model => model.AccessToken, new { autocomplete = "off" }) *@
 
     <input type="submit" value="Export" id="exportButton" />
 }
