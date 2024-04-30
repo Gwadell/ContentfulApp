@@ -1,21 +1,11 @@
 ﻿using Contentful.Core;
 using Contentful.Core.Configuration;
-using Contentful.Core.Models;
 using Contentful.Core.Search;
 using ContentfulApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using System.Runtime.CompilerServices;
 using ContentfulApp.Models.DTO;
-using System.Dynamic;
-using Microsoft.AspNetCore.Http.Features;
 using OfficeOpenXml;
-using System.Reflection.Metadata.Ecma335;
-using System.Linq.Expressions;
-using System.Linq;
-using Contentful.Core.Extensions;
-using System.Reflection;
-using Contentful.Core.Models.Management;
 using ContentfulApp.Models.DTO.ExportDto;
 using System.Drawing;
 

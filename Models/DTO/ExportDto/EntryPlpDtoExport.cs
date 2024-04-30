@@ -1,7 +1,4 @@
-﻿using Contentful.Core.Models;
-using ContentfulApp.Models.DTO;
-using System.Text.Json.Serialization;
-
+﻿
 namespace ContentfulApp.Models.DTO.ExportDto
 {
     public class EntryPlpDtoExport

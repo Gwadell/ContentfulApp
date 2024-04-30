@@ -1,12 +1,10 @@
 using Contentful.Core;
-using Contentful.Core.Models;
 using Contentful.Core.Search;
 using ContentfulApp.Models;
 using ContentfulApp.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Diagnostics;
-using System.Security.AccessControl;
 
 namespace ContentfulApp.Controllers
 {
