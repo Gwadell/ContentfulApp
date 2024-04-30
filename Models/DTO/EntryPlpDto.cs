@@ -1,5 +1,6 @@
 ﻿using Contentful.Core.Models;
 using System.Text.Json.Serialization;
+using System.Xml.Schema;
 
 namespace ContentfulApp.Models.DTO
 {
@@ -12,21 +13,25 @@ namespace ContentfulApp.Models.DTO
         public bool IsPrimaryCategory { get; set; }
         public int CategoryRank { get; set; }
         public string ShortDescription { get; set; }
-        public FilterObj? FilterObj { get; set; }
-        //public string SubPageData { get; set; }
-        //public string AdditionalContentDescription { get; set; }
+        public Filter? Filter { get; set; }
+        //public SubPageData? SubPageData { get; set; }
+        public  AdditionalContentDescription? AdditionalContentDescription  { get; set; }
 
         public List<string> Active { get; set; }
 
         public bool CreateLinksOnProductPages { get; set; }
         public bool UseAsFacet { get; set; }
-        //public string Tags { get; set; }
-        //public string Facets { get; set; }
+        public List<string>? Tags { get; set; }
+        public List<string>? Facets { get; set; }
+
+        public string? H1Title { get; set; }
 
         public SeoInfo? SeoInfo { get; set; }
         public string Slug { get; set; }
 
         public List<List<string>> Urls { get; set; }
+
+
 
         public string GetLastUrl()
         {
@@ -45,9 +50,9 @@ namespace ContentfulApp.Models.DTO
         {
             if (Active != null && Sys != null && !string.IsNullOrEmpty(Sys.Locale))
             {
-                foreach (string activeString in Active)
+                foreach (string locale in Active)
                 {
-                    if (activeString.Equals(Sys.Locale, StringComparison.OrdinalIgnoreCase))
+                    if (locale.Equals(Sys.Locale, StringComparison.OrdinalIgnoreCase))
                     {
                         return true;
                     }
@@ -55,7 +60,43 @@ namespace ContentfulApp.Models.DTO
             }
             return false;
         }
+
+
+        public string? GetFacetsAsString()
+        {
+            return Facets != null ? string.Join(",", Facets) : null;
+        }
+
+        public string? GetTagsAsString()
+        {
+            return Tags != null ? string.Join(",", Tags) : null;
+        }
+
+        public string GetAdditionalContentDescriptionAsString()
+        {
+            if (AdditionalContentDescription != null)
+            {
+                return AdditionalContentDescription.Content.Select(c => c.Value).ToString();
+            }
+            return null;
+        }
+
+
+
+        // funkar bara på mangement api. 
+        public bool IsArchived()
+        {
+            return Sys?.ArchivedAt != null;
+        }
+
+
+
     }
+
+    //public class SubPageData
+    //{
+    //    public string? Routes { get; set; }
+    //}
 
     public class SeoInfo
     {
@@ -64,24 +105,20 @@ namespace ContentfulApp.Models.DTO
         public string? Description { get; set; }
     }
 
-    public class Urls
-    {
 
-    }
-
-    public class FilterObj
+    public class Filter
     {
-        [JsonPropertyName("_rawFilterData")]
-        public string? Filter { get; set; }
+        public string? _rawFilterData { get; set; }
     }
 
     public class AdditionalContentDescription
     {
-        public Validations?  Validations { get; set; }
+        //public string? Data { get; set; }
+        public List<Content>? Content { get; set; }
     }
 
-    public class Validations
+    public class Content
     {
-        public string? Message { get; set; }
+        public string? Value { get; set; }
     }
 }

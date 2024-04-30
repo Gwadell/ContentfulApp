@@ -4,6 +4,7 @@ using Contentful.Core.Search;
 using ContentfulApp.Models;
 using ContentfulApp.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Diagnostics;
 using System.Security.AccessControl;
 
@@ -23,9 +24,15 @@ namespace ContentfulApp.Controllers
             _managementClient = contentfulManagementClient;
         }
 
+  
+
         public async Task<IActionResult> ExportContentTypes(List<string> contentTypesList, List<string> localesList)
         {
             var exportedDataList = new List<ContentTypeExportData>();
+
+            var entries = await _managementClient.GetEntriesCollection<dynamic>();
+
+            var entriesAsJson = JsonConvert.SerializeObject(entries);
 
             foreach (var contenttype in contentTypesList)
             {
@@ -37,7 +44,7 @@ namespace ContentfulApp.Controllers
 
                 do
                 {
-                    var entries = await _client.GetEntries<dynamic>(queryBuilder);
+                    //var entries = await _client.GetEntries<dynamic>(queryBuilder);
                     totalItemsCOunt = entries.Total;
                     fetchedItemsCount += entries.Items.Count();
 
@@ -61,12 +68,9 @@ namespace ContentfulApp.Controllers
 
         public async Task<IActionResult> Index()
         {
-            //var entries = await _client.GetEntries<dynamic>();
+            var entries = await _managementClient.GetEntriesCollection<dynamic>();
 
-            //entries as json
-            //var entriesAsJson = JsonConvert.SerializeObject(entries);
-
-
+            var entriesAsJson = JsonConvert.SerializeObject(entries);
             return View();
         }
 

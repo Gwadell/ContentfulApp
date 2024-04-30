@@ -13,23 +13,19 @@ namespace ContentfulApp.Models.DTO.ExportDto
         public int CategoryRank { get; set; }
         public string ShortDescription { get; set; }
         public string? Filter { get; set; }
-
-        //public string SubPageData { get; set; }
-        //public string AdditionalContentDescription { get; set; }
+        public string SubPageData { get; set; } // funkar ej 
+        public string? AdditionalContentDescription { get; set; } //funkar ej 
         public bool Active { get; set; }
+        public string? H1Title { get; set; }
         public bool CreateLinksOnProductPages { get; set; }
-
         public bool UseAsFacet { get; set; }
-        //public string  Tags { get; set; }
-
-        //public string Facets { get; set; }
-
-        public string Url { get; set; }
-        public string? Title { get; set; }
-        
-        public string? Description { get; set; }
+        public string?  Tags { get; set; } //funkar ej
+        public string? Facets { get; set; }
+        public string Urls { get; set; }
+        public string? SeoTitle { get; set; }
+        public string? SeoDescription { get; set; }
         public string? Slug { get; set; }
-
+        public bool Archived { get; set; }  //funkar ej
         public DateTime? CreatedAt { get; set; }
 
     }

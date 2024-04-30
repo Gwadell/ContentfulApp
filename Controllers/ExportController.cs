@@ -48,10 +48,18 @@ namespace ContentfulApp.Controllers
             var locales = model.Locales.Split(',').Select(c => c.Trim()).ToList();
             var client = GetContentfulClient(model);
 
-            var entries1 = await client.GetEntries<dynamic>();
+            QueryBuilder<dynamic> queryBuilder = new QueryBuilder<dynamic>();
+            queryBuilder.ContentTypeIs("productListingPage");
+            queryBuilder.Limit(20);
+            queryBuilder.Include(2);
+            var entries1 = await client.GetEntries<dynamic>(queryBuilder);
 
             //entries as json
             var entriesAsJson = JsonConvert.SerializeObject(entries1);
+
+            //var getEntryByID = await client.GetEntry<dynamic>("6hUtLDGZGk34LDA2GlnSPV"); 
+
+            //var convertEntryToJSON = JsonConvert.SerializeObject(getEntryByID);
 
             var allEntries = new Dictionary<string, IEnumerable<object>>();
 
@@ -63,15 +71,20 @@ namespace ContentfulApp.Controllers
                     var dtoType = contentType switch
                     {
                         "productListingPage" => typeof(EntryPlpDto),
-                        "brand" => typeof(EntryBrandDto),
-                        //_ => throw new ArgumentException($"the contenttype:{contentType} does not exist")
+                        "brand" => typeof(EntryPlpDto),
+                        "collection" => typeof(EntryPlpDto),
+                        "designer" => typeof(EntryPlpDto),
+                        _ => typeof(EntryBrandDto)
                     };
 
                     var entries = await GetEntriesForContentType(client, model, contentType, dtoType, locale);
 
-                    
+                    if (!ContentTypeToExportDtoTypeMap.TryGetValue(contentType, out var exportDtoType))
+                    {
+                        exportDtoType = ContentTypeToExportDtoTypeMap["_default"];
+                    }
+                    //var exportDtoType = ContentTypeToExportDtoTypeMap[contentType];
 
-                    var exportDtoType = ContentTypeToExportDtoTypeMap[contentType];
                     var exportEntries = entries.Select(e => MapToExportDto(e, exportDtoType)); // Use the mapping function
                     var key = $"{contentType}-{locale}";
                     allEntries.Add(key, exportEntries);
@@ -92,7 +105,7 @@ namespace ContentfulApp.Controllers
         private async Task<IEnumerable<object>> GetEntriesForContentType(ContentfulClient client, ExportModel model, string contentType, Type dtoType, string locale)
         {
             var skip = 0;
-            const int batchSize = 80;
+            const int batchSize = 10;
 
             var allEntries = new List<object>();
 
@@ -104,13 +117,13 @@ namespace ContentfulApp.Controllers
                 queryBuilderType.GetMethod("ContentTypeIs").Invoke(queryBuilder, new object[] { contentType });
                 queryBuilderType.GetMethod("LocaleIs").Invoke(queryBuilder, new object[] { locale});
                 queryBuilderType.GetMethod("Skip").Invoke(queryBuilder, new object[] { skip });
-                queryBuilderType.GetMethod("Include").Invoke(queryBuilder, new object[] { 2 });
+                queryBuilderType.GetMethod("Include").Invoke(queryBuilder, new object[] { 0 });
                 queryBuilderType.GetMethod("Limit").Invoke(queryBuilder, new object[] { batchSize });
 
                 var pageEntries = await client.GetEntries((dynamic)queryBuilder);
 
                 
-                var pageEntriesJson = JsonConvert.SerializeObject(pageEntries);
+                //var pageEntriesJson = JsonConvert.SerializeObject(pageEntries);
 
 
                 allEntries.AddRange(pageEntries);
@@ -158,7 +171,7 @@ namespace ContentfulApp.Controllers
                     {
                         var columnNumber = createdAtColumn.Start.Column;
                         var columnRange = ws.Cells[2, columnNumber, ws.Dimension.End.Row, columnNumber];
-                        columnRange.Style.Numberformat.Format = "yyyy-mm-dd";
+                        columnRange.Style.Numberformat.Format = "yyyy-mm-dd-hh-ss";
 
                     }
 
@@ -170,7 +183,10 @@ namespace ContentfulApp.Controllers
         public static Dictionary<string, Type> ContentTypeToExportDtoTypeMap = new Dictionary<string, Type>
         {
             { "productListingPage", typeof(EntryPlpDtoExport) },
-            { "brand", typeof(EntryBrandDtoExport) }
+            { "brand", typeof(EntryPlpDtoExport) },
+            { "collection", typeof(EntryPlpDtoExport) },
+            { "designer", typeof(EntryPlpDtoExport) },
+            { "_default", typeof(EntryBrandDtoExport) }
         };
 
         private object MapToExportDto(object dto, Type exportDtoType)
@@ -186,24 +202,34 @@ namespace ContentfulApp.Controllers
                         IsPrimaryCategory = entryPlpDto.IsPrimaryCategory,
                         CategoryRank = entryPlpDto.CategoryRank,
                         ShortDescription = entryPlpDto.ShortDescription,
-                        Filter = entryPlpDto.FilterObj?.Filter,
-                        //SubPageData = entryPlpDto.SubPageData,
-                        //AdditionalContentDescription = entryPlpDto.AdditionalContentDescription,
+                        Filter = entryPlpDto.Filter?._rawFilterData,
+                        //SubPageData = entryPlpDto.SubPageData.Routes,
+                        AdditionalContentDescription = entryPlpDto.GetAdditionalContentDescriptionAsString(), //funkar ej 
                         Active = entryPlpDto.IsActiveLocale(),
                         CreateLinksOnProductPages = entryPlpDto.CreateLinksOnProductPages,
                         UseAsFacet = entryPlpDto.UseAsFacet,
-                        //Tags = entryPlpDto.Tags,
-                        //Facets = entryPlpDto.Facets,
-                        Title = entryPlpDto.SeoInfo?.Title,
-                        Description = entryPlpDto.SeoInfo?.Description,
+                        Tags = entryPlpDto.GetTagsAsString(), //funkar ej 
+                        Facets = entryPlpDto.GetFacetsAsString(),
+                        SeoTitle = entryPlpDto.SeoInfo?.Title,
+                        SeoDescription = entryPlpDto.SeoInfo?.Description,
                         Slug = entryPlpDto.Slug,
                         CreatedAt = entryPlpDto.Sys.CreatedAt,
-                        Url = entryPlpDto.GetLastUrl()
+                        Urls = entryPlpDto.GetLastUrl(),
+                        Archived = entryPlpDto.IsArchived(),
+                        H1Title = entryPlpDto.H1Title,
+                        //archived
                     };
                 case nameof(EntryBrandDtoExport) when dto is EntryBrandDto entryBrandDto:
                     return new EntryBrandDtoExport
                     {
-                        Id = entryBrandDto.Sys.Id
+                        Id = entryBrandDto.Sys.Id,
+                        InternalName = entryBrandDto.InternalName,
+                        Name = entryBrandDto.Name,
+                        Slug = entryBrandDto.Slug,
+                        Urls = entryBrandDto.GetLastUrl(),
+                        CreatedAt = entryBrandDto.Sys.CreatedAt,
+                        //archived
+                        //tags
                     };
                 default:
                     return null;
