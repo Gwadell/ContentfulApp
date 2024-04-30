@@ -1,5 +1,55 @@
 ﻿@model ContentfulApp.Models.ExportModel
+<style>
+    form div {
+        margin-bottom: 25px;
+    }
 
+    input[type="text"] {
+        width: 100%;
+    }
+
+    #exportButton {
+        margin-top: 20px; 
+        background-color:darkorange;
+    }
+
+    #loading {
+        
+    }
+
+
+    #excelDownloadLink {
+        text-decoration: underline;
+    }
+
+    #loading span {
+        animation: loading 1s infinite;
+    }
+
+    #loading span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    #loading span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @@keyframes loading {
+        0% {
+            opacity: 0;
+        }
+
+        50% {
+            opacity: 1;
+        }
+
+        100% {
+            opacity: 0;
+        }
+    }
+
+    
+</style>
 @using (Html.BeginForm("Index", "Export", FormMethod.Post, new { id = "exportForm" } ))
 {
     @Html.LabelFor(model => model.Environment)
@@ -19,22 +69,31 @@
 
     <input type="submit" value="Export" id="exportButton" />
 }
+<div id="loading" style="display:none;">Loading<span>.</span><span>.</span><span>.</span></div>
+
 
 <div id="downloadLink" style="display:none;">
-    <a id="excelDownloadLink" href="#">Kopiera denna länk för att ladda ner excelfilen</a>
+    <a id="excelDownloadLink" href="#">Kopiera denna länkadress och kopiera in i ny flik för att ladda ner excelfilen</a>
 </div>
 
 @section scripts {
     <script>
+
         $(function () {
             $('#exportForm').submit(function (event) {
                 event.preventDefault(); // Hindra standardformuläret från att skickas
+
+                // Visa "Loading..." texten
+                $('#loading').show();
 
                 $.ajax({
                     url: $(this).attr('action'), // Åtgärden i kontrollern för att hantera exporten
                     method: 'POST',
                     data: $(this).serialize(), // Serialize formulärets data
                     success: function (response) {
+                        // Dölj "Loading..." texten
+                        $('#loading').hide();
+
                         var downloadLink = $('#downloadLink');
                         downloadLink.show();
                         $('#excelDownloadLink').attr('href', response); // Lägg till nedladdningslänken
@@ -42,5 +101,6 @@
                 });
             });
         });
+
     </script>
 }
