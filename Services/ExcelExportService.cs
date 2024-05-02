@@ -4,9 +4,14 @@ using System.Drawing;
 
 namespace ContentfulApp.Services
 {
-    public class ExcelExportService
+    public class ExcelExportService : IExcelExportService
     {
-        public static void ExportToExcel(Dictionary<string, IEnumerable<object>> data, string path)
+        /// <summary>
+        /// Export data to an Excel file.
+        /// </summary>
+        /// <param name="data">The data to be exported.</param>
+        /// <param name="path">The path where the Excel file will be saved.</param>
+        public void ExportToExcel(Dictionary<string, IEnumerable<object>> data, string path)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (var package = new ExcelPackage())
@@ -50,14 +55,12 @@ namespace ContentfulApp.Services
                 package.SaveAs(new FileInfo(path));
             }
         }
-
-        public static Dictionary<string, Type> ContentTypeToExportDtoTypeMap = new Dictionary<string, Type>
-        {
-            { "productListingPage", typeof(FullExport) },
-            { "brand", typeof(FullExport) },
-            { "collection", typeof(FullExport) },
-            { "designer", typeof(FullExport) },
-            { "_default", typeof(RegularExport) }
-        };
     }
+    public interface IExcelExportService
+    {
+        void ExportToExcel(Dictionary<string, IEnumerable<object>> data, string path);
+    }
+
 }
+
+

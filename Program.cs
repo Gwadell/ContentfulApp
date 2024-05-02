@@ -1,12 +1,17 @@
 using Microsoft.Extensions.Configuration;
 using Contentful.AspNetCore;
 using OfficeOpenXml;
+using ContentfulApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddContentful(builder.Configuration);
+builder.Services.AddScoped<IContentfulService, ContentfulService>();
+builder.Services.AddScoped<IExcelExportService, ExcelExportService>();
+builder.Services.AddScoped<IDtoMappingService, DtoMappingService>();
+
 
 var app = builder.Build();
 
