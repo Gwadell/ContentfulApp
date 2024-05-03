@@ -26,12 +26,12 @@ namespace ContentfulApp.Services
                         CategoryRank = fullEntryDto.CategoryRank,
                         ShortDescription = fullEntryDto.ShortDescription,
                         Filter = fullEntryDto.Filter?._rawFilterData,
-                        //SubPageData = fullEntryDto.SubPageData.Routes,
+                        //SubPageData = fullEntryDto.ConvertSubPageDataToString(),
                         AdditionalContentDescription = fullEntryDto.ConvertAdditionalContentDescriptionToHtml(), //do not work like it should
                         Active = fullEntryDto.IsActiveLocale(),
                         CreateLinksOnProductPages = fullEntryDto.CreateLinksOnProductPages,
                         UseAsFacet = fullEntryDto.UseAsFacet,
-                        //Tags = fullEntryDto.GetTagsAsString(), //funkar ej 
+                        //Tags = fullEntryDto.GetTagsAsString(), //do not work 
                         Facets = fullEntryDto.GetFacetsAsString(),
                         SeoTitle = fullEntryDto.SeoInfo?.Title,
                         SeoDescription = fullEntryDto.SeoInfo?.Description,
@@ -59,10 +59,44 @@ namespace ContentfulApp.Services
                     return null;
             }
         }
+
+        public Type GetDtoType(string contentType)
+        {
+            return contentType switch
+            {
+                "productListingPage" => typeof(FullEntryDto),
+                "brand" => typeof(FullEntryDto),
+                "collection" => typeof(FullEntryDto),
+                "designer" => typeof(FullEntryDto),
+                _ => typeof(RegularEntryDto)
+            };
+        }
+
+        public Type GetExportDtoType(string contentType)
+        {
+            if (!ContentTypeToExportDtoTypeMap.TryGetValue(contentType, out var exportDtoType))
+            {
+                exportDtoType = ContentTypeToExportDtoTypeMap["_default"];
+            }
+
+            return exportDtoType;
+        }
+
+        public static Dictionary<string, Type> ContentTypeToExportDtoTypeMap = new Dictionary<string, Type>
+        {
+            { "productListingPage", typeof(FullExport) },
+            { "brand", typeof(FullExport) },
+            { "collection", typeof(FullExport) },
+            { "designer", typeof(FullExport) },
+            { "_default", typeof(RegularExport) }
+        };
     }
 
     public interface IDtoMappingService
     {
         object MapToExportDto(object dto, Type exportDtoType);
+        Type GetDtoType(string contentType);
+        Type GetExportDtoType(string contentType);
+
     }
 }

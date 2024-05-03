@@ -1,5 +1,6 @@
 ﻿using ContentfulApp.Models.DTO.ExportDto;
 using OfficeOpenXml;
+using OfficeOpenXml.Style;
 using System.Drawing;
 
 namespace ContentfulApp.Services
@@ -31,6 +32,7 @@ namespace ContentfulApp.Services
                     var ws = package.Workbook.Worksheets.Add(sheet);
                     ws.Cells["A1"].LoadFromCollection((dynamic)typedCollection, true);
 
+                    
 
                     // Format header row
                     var headerRange = ws.Cells[1, 1, 1, ws.Dimension.End.Column];
@@ -40,6 +42,16 @@ namespace ContentfulApp.Services
 
                     // Autofit columns
                     ws.Cells[ws.Dimension.Address].AutoFitColumns();
+
+                    
+                    for (int i = 1; i <= ws.Dimension.End.Column; i++)
+                    {
+                        if (ws.Column(i).Width > 40)
+                        {
+                            ws.Column(i).Width = 40;
+                        }
+                    }
+                    
 
                     // Format CreatedAt column as date
                     var createdAtColumn = ws.Cells[1, 1, 1, ws.Dimension.End.Column].FirstOrDefault(c => c.Text == "CreatedAt");
@@ -55,10 +67,32 @@ namespace ContentfulApp.Services
                 package.SaveAs(new FileInfo(path));
             }
         }
+        
+        /// <summary>
+        /// Generate an Excel file with the given data and environment.
+        /// </summary>
+        /// <param name="allentries">The data to be exported.</param>
+        /// <param name="environment">The environment name.</param>
+        /// <returns>The file path of the generated Excel file.</returns>
+        public string GenerateExcelFile(Dictionary<string, IEnumerable<object>> allentries, string environment)
+        {
+            var environmentName = environment == "master" ? "" : environment;
+            var currentDateTime = DateTime.Now.ToString("yyyy-MM-dd-HH-mm");
+
+            var excelFileName = $"export-{environmentName}-{currentDateTime}.xlsx";
+            var excelfilePath = Path.Combine(Path.GetTempPath(), excelFileName);
+
+            ExportToExcel(allentries, excelfilePath);
+
+            return excelfilePath;
+        }
     }
+
+
     public interface IExcelExportService
     {
         void ExportToExcel(Dictionary<string, IEnumerable<object>> data, string path);
+        string GenerateExcelFile(Dictionary<string, IEnumerable<object>> allentries, string environment);
     }
 
 }

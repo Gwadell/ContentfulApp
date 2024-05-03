@@ -22,48 +22,6 @@ namespace ContentfulApp.Controllers
             _managementClient = contentfulManagementClient;
         }
 
-  
-
-        public async Task<IActionResult> ExportContentTypes(List<string> contentTypesList, List<string> localesList)
-        {
-            var exportedDataList = new List<ContentTypeExportData>();
-
-            var entries = await _managementClient.GetEntriesCollection<dynamic>();
-
-            var entriesAsJson = JsonConvert.SerializeObject(entries);
-
-            foreach (var contenttype in contentTypesList)
-            {
-                var fetchedItemsList = new List<dynamic>(); 
-                int totalItemsCOunt = 0;
-                int fetchedItemsCount = 0;
-
-                var queryBuilder = QueryBuilder<dynamic>.New.ContentTypeIs(contenttype).Limit(10); 
-
-                do
-                {
-                    //var entries = await _client.GetEntries<dynamic>(queryBuilder);
-                    totalItemsCOunt = entries.Total;
-                    fetchedItemsCount += entries.Items.Count();
-
-                    foreach (var entry in entries.Items)
-                    {
-                        fetchedItemsList.Add(entry);
-                    }
-                } while (fetchedItemsCount < totalItemsCOunt);
-
-                var exportedData = new ContentTypeExportData
-                {
-                    ContentType = contenttype,
-                    Items = fetchedItemsList
-                };
-
-                exportedDataList.Add(exportedData);
-            }
-
-            return View(exportedDataList);
-        }
-
         public async Task<IActionResult> Index()
         {
             //var entries = await _managementClient.GetEntriesCollection<dynamic>();

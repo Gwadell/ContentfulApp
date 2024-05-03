@@ -35,27 +35,44 @@ namespace ContentfulApp.Controllers
         [HttpPost]
         public async Task<ActionResult> Index(ExportModel model)
         {
-            var contentTypes = ParseContetTypes(model.ContentTypes);
+            var contentTypes = ParseContetTypes(model.ContentTypesId);
             var locales = ParseLocales(model.Locales);
             var client = await _contentfulService.GetClientAsync(model.AccessToken, model.SpaceId, model.Environment);
 
             var allEntries = await GetAllEntries(contentTypes, locales, client);
 
-            var excelfilePath = GenerateExcelFile(allEntries, model.Environment);
+            var excelfilePath = _excelExportService.GenerateExcelFile(allEntries, model.Environment);
 
             return Content(excelfilePath);
         }
 
+        /// <summary>
+        /// Parses the given content types string into a list of content types.
+        /// </summary>
+        /// <param name="contentTypes">The content types string to parse.</param>
+        /// <returns>A list of parsed content types.</returns>
         private List<string> ParseContetTypes(string contentTypes)
         {
             return contentTypes.Split(',').Select(c => c.Trim()).ToList();
         }
 
+        /// <summary>
+        /// Parses the given locales string into a list of locales.
+        /// </summary>
+        /// <param name="locales">The locales string to parse</param>
+        /// <returns>A list of parsed locales</returns>
         private List<string> ParseLocales(string locales)
         {
             return locales.Split(',').Select(c => c.Trim()).ToList();
         }
 
+        /// <summary>
+        /// Retrieves all entries from Contentful for the given content types and locales.
+        /// </summary>
+        /// <param name="contentTypes">The list of content types to retrieve entries for.</param>
+        /// <param name="locales">The list of locales to retrieve entries for.</param>
+        /// <param name="client">The Contentful client.</param>
+        /// <returns>A dictionary containing the retrieved entries, with the key being a combination of content type and locale.</returns>
         private async Task<Dictionary<string, IEnumerable<object>>> GetAllEntries(List<string> contentTypes, List<string> locales, ContentfulClient client)
         {
             var allEntries = new Dictionary<string, IEnumerable<object>>();
@@ -63,7 +80,7 @@ namespace ContentfulApp.Controllers
             {
                 foreach (var locale in locales)
                 {
-                    var entries = await GetEntriesForContentTypeAndLocale(client, contentType, locale);
+                    var entries = await _contentfulService.GetEntriesForContentTypeAndLocale(client, contentType, locale);
                     var key = $"{contentType}-{locale}";
                     allEntries.Add(key, entries);
                 }
@@ -71,58 +88,6 @@ namespace ContentfulApp.Controllers
             return allEntries;
         }
 
-        private async Task<IEnumerable<object>> GetEntriesForContentTypeAndLocale(ContentfulClient client, string contentType, string locale)
-        {
-            var dtoType = GetDtoType(contentType);
-            var entries = await _contentfulService.GetEntriesForContentType(client, contentType, dtoType, locale);
-            
-            var exportDtoType = GetExportDtoType(contentType);
-            return entries.Select(e => _dtoMappingService.MapToExportDto(e, exportDtoType));
-        }
-
-        private Type GetDtoType(string contentType)
-        {
-            return contentType switch
-            {
-                "productListingPage" => typeof(FullEntryDto),
-                "brand" => typeof(FullEntryDto),
-                "collection" => typeof(FullEntryDto),
-                "designer" => typeof(FullEntryDto),
-                _ => typeof(RegularEntryDto)
-            };
-        }
-
-        private Type GetExportDtoType(string contentType)
-        {
-            if (!ContentTypeToExportDtoTypeMap.TryGetValue(contentType, out var exportDtoType))
-            {
-                exportDtoType = ContentTypeToExportDtoTypeMap["_default"];
-            }
-
-            return exportDtoType;
-        }
-
-        private string GenerateExcelFile(Dictionary<string,IEnumerable<object>> allentries, string environment)
-        {
-            var environmentName = environment == "master" ? "" : environment;
-            var currentDateTime = DateTime.Now.ToString("yyyy-MM-dd-HH-mm");
-
-            var excelFileName = $"export-{environmentName}-{currentDateTime}.xlsx";
-            var excelfilePath = Path.Combine(Path.GetTempPath(), excelFileName);
-
-            _excelExportService.ExportToExcel(allentries, excelfilePath);
-
-            return excelfilePath;
-        }
-
-        public static Dictionary<string, Type> ContentTypeToExportDtoTypeMap = new Dictionary<string, Type>
-        {
-            { "productListingPage", typeof(FullExport) },
-            { "brand", typeof(FullExport) },
-            { "collection", typeof(FullExport) },
-            { "designer", typeof(FullExport) },
-            { "_default", typeof(RegularExport) }
-        };
 
         private async Task<string> GetEntriesAsJson(ExportModel model)
         {

@@ -63,21 +63,22 @@
     <small>ex: sv-SE, pl-PL</small>
     @Html.TextBoxFor(model => model.Locales)
 
-    @Html.LabelFor(model => model.ContentTypes)
+    @Html.LabelFor(model => model.ContentTypesId)
     <small>ex: productListingPage, ad, brand </small>
-    @Html.TextBoxFor(model => model.ContentTypes)
+    @Html.TextBoxFor(model => model.ContentTypesId)
 
     @Html.LabelFor(model => model.AccessToken)
+    <small>your personal accesstoken from Contentful</small>
     @Html.TextBoxFor(model => model.AccessToken)
-@*  @Html.TextBoxFor(model => model.AccessToken, new { autocomplete = "off" }) *@
-
+@*     @Html.TextBoxFor(model => model.AccessToken, new { autocomplete = "off" })
+ *@
     <input type="submit" value="Export" id="exportButton" />
 }
 <div id="loading" style="display:none;">Loading<span>.</span><span>.</span><span>.</span></div>
 
 
 <div id="downloadLink" style="display:none;">
-    <a id="excelDownloadLink" href="#">Copy this link address and put in a new tab to download the excel file</a>
+    <a id="excelDownloadLink" href="#">Copy this link address and put it in a new tab to download the excel file</a>
 </div>
 
 @section scripts {

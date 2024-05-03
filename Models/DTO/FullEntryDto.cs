@@ -1,9 +1,10 @@
 ﻿using Contentful.Core.Models;
+using Newtonsoft.Json.Linq;
 
 namespace ContentfulApp.Models.DTO
 {
 
-    class FullEntryDto
+    class FullEntryDto: IContent
     {
         public SystemProperties Sys { get; set; } // id and createdAt
         public string InternalName { get; set; }
@@ -12,7 +13,7 @@ namespace ContentfulApp.Models.DTO
         public int CategoryRank { get; set; }
         public string ShortDescription { get; set; }
         public Filter? Filter { get; set; }
-        //public SubPageData? SubPageData { get; set; }
+        //public JObject? SubPageData { get; set; }
         public Document? AdditionalContentDescription { get; set; }
         public List<string> Active { get; set; }
         public bool CreateLinksOnProductPages { get; set; }
@@ -84,11 +85,16 @@ namespace ContentfulApp.Models.DTO
         {
             if (AdditionalContentDescription != null)
             {
-                var html = new HtmlRenderer().ToHtml(AdditionalContentDescription);
+                var html = new HtmlRenderer().ToHtml(AdditionalContentDescription).Result;
                 return html.ToString();
             }
             return null;
         }
+
+        //public string ConvertSubPageDataToString()
+        //{
+        //    return SubPageData?.ToString();
+        //}
 
     }
 
@@ -98,10 +104,15 @@ namespace ContentfulApp.Models.DTO
         public string? Description { get; set; }
     }
 
-    //public class SubPageData
-    //{
-    //    public string? Routes { get; set; }
-    //}
+    public class SubPageData
+    {
+        public Routes? Routes { get; set; }
+    }
+
+    public class Routes
+    {
+        public List<string>? Sv { get; set; }
+    }
 
     public class Filter
     {
