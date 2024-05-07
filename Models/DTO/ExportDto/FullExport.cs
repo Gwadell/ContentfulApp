@@ -22,7 +22,7 @@ namespace ContentfulApp.Models.DTO.ExportDto
         public string? SeoTitle { get; set; }
         public string? SeoDescription { get; set; }
         public string? Slug { get; set; }
-        public bool Archived { get; set; }  //funkar ej
+        public bool Archived { get; set; }  //funkar ej på delivery api
         public DateTime? CreatedAt { get; set; }
 
     }

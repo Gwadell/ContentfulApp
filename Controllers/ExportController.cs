@@ -10,6 +10,8 @@ using ContentfulApp.Models.DTO.ExportDto;
 using System.Drawing;
 using Contentful.Core.Models;
 using ContentfulApp.Services;
+using Contentful.Core.Models.Management;
+using System.Net.Mime;
 
 namespace ContentfulApp.Controllers
 {
@@ -18,12 +20,14 @@ namespace ContentfulApp.Controllers
         private readonly IContentfulService _contentfulService;
         private readonly IDtoMappingService _dtoMappingService;
         private readonly IExcelExportService _excelExportService;
+        private readonly IContentfulManagementClient _managementClient;
 
-        public ExportController(IContentfulService contentfulService, IDtoMappingService dtoMappingService, IExcelExportService excelExportService)
+        public ExportController(IContentfulService contentfulService, IDtoMappingService dtoMappingService, IExcelExportService excelExportService, IContentfulManagementClient managementClient)
         {
             _contentfulService = contentfulService;
             _dtoMappingService = dtoMappingService;
             _excelExportService = excelExportService;
+            _managementClient = managementClient;
         }
 
         public IActionResult Index()
@@ -35,6 +39,8 @@ namespace ContentfulApp.Controllers
         [HttpPost]
         public async Task<ActionResult> Index(ExportModel model)
         {
+            var Entries = await GetEntriesAsJson(model);
+
             var contentTypes = ParseContetTypes(model.ContentTypesId);
             var locales = ParseLocales(model.Locales);
             var client = await _contentfulService.GetClientAsync(model.AccessToken, model.SpaceId, model.Environment);
@@ -95,13 +101,21 @@ namespace ContentfulApp.Controllers
 
             QueryBuilder<dynamic> queryBuilder = new QueryBuilder<dynamic>();
             queryBuilder.ContentTypeIs("productListingPage");
+            queryBuilder.LocaleIs("sv-SE");
             queryBuilder.Limit(10);
-            queryBuilder.Include(4);
+            queryBuilder.Include(2);
             var entries = await client.GetEntries<dynamic>(queryBuilder);
 
-            //entries as json
             var entriesAsJson = JsonConvert.SerializeObject(entries);
             return entriesAsJson;
         }
+
+        //private async Task<IEnumerable<FullEntryDto>> GetManagementEntries(ExportModel model)
+        //{
+        //    var entries = await _managementClient.GetEntriesCollection<dynamic>();
+
+        //    return entries;
+        //}
+
     }
 }

@@ -1,5 +1,8 @@
 ﻿using Contentful.Core.Models;
+using Microsoft.CodeAnalysis;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Text.Json.Serialization;
 
 namespace ContentfulApp.Models.DTO
 {
@@ -13,13 +16,14 @@ namespace ContentfulApp.Models.DTO
         public int CategoryRank { get; set; }
         public string ShortDescription { get; set; }
         public Filter? Filter { get; set; }
-        //public JObject? SubPageData { get; set; }
+        public JObject? SubPageData { get; set; }
         public Document? AdditionalContentDescription { get; set; }
         public List<string> Active { get; set; }
         public bool CreateLinksOnProductPages { get; set; }
         public bool UseAsFacet { get; set; }
         public SeoInfo? SeoInfo { get; set; }
-        //public List<string> Tags { get; set; }
+        [JsonProperty("$metadata")]
+        public ContentfulMetadata? Metadata { get; set; }
         public List<string>? Facets { get; set; }
         public string? H1Title { get; set; }
         public string Slug { get; set; }
@@ -91,11 +95,26 @@ namespace ContentfulApp.Models.DTO
             return null;
         }
 
-        //public string ConvertSubPageDataToString()
-        //{
-        //    return SubPageData?.ToString();
-        //}
+        public string GetTagsIdsAsString()
+        {
+            return Metadata?.Tags != null ? string.Join(",", Metadata.Tags.Select(tag => tag.Sys.Id)) : null;
+        }
 
+
+        public string ConvertSubPageDataToString()
+        {
+            return SubPageData?.ToString();
+        }
+
+    }
+    public class Metadata
+    {
+        public List<Tag>? Tags { get; set; }
+    }
+
+    public class Tag
+    {
+        public SystemProperties Sys { get; set; }
     }
 
     public class SeoInfo

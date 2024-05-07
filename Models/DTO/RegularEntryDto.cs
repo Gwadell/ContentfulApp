@@ -1,4 +1,5 @@
 ﻿using Contentful.Core.Models;
+using Newtonsoft.Json;
 
 namespace ContentfulApp.Models.DTO
 {
@@ -9,6 +10,8 @@ namespace ContentfulApp.Models.DTO
         public string? Name { get; set; }
         public string Slug { get; set; }
         public List<List<string>> Urls { get; set; }
+        [JsonProperty("$metadata")]
+        public ContentfulMetadata? Metadata { get; set; }
 
 
         public string GetLastUrl()
@@ -22,6 +25,11 @@ namespace ContentfulApp.Models.DTO
                 }
             }
             return null;
+        }
+
+        public string GetTagsIdsAsString()
+        {
+            return Metadata?.Tags != null ? string.Join(",", Metadata.Tags.Select(tag => tag.Sys.Id)) : null;
         }
     }
 }

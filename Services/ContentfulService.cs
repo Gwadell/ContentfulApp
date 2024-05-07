@@ -1,6 +1,7 @@
 ﻿using Contentful.Core;
 using Contentful.Core.Configuration;
 using Contentful.Core.Search;
+using Newtonsoft.Json;
 using System.Net.Http;
 using System.Threading.Tasks;
 

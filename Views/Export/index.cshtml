@@ -17,6 +17,10 @@
         font-weight: bold;
     }
 
+    .dropdown {
+        width: 250px; 
+    }
+
     #excelDownloadLink {
         text-decoration: underline;
     }
@@ -52,9 +56,8 @@
 @using (Html.BeginForm("Index", "Export", FormMethod.Post, new { id = "exportForm" } ))
 {
     @Html.LabelFor(model => model.Environment)
-    <small>ex: stage</small>
-    @Html.TextBoxFor(model => model.Environment)
-
+    
+    @Html.DropDownListFor(model => model.Environment, new SelectList(new List<string>() { "Choose environment", "dev", "stage" }), new { @class = "form-control dropdown" })
     @Html.LabelFor(model => model.SpaceId)
     <small>ex: spz4r8efhveb</small>
     @Html.TextBoxFor(model => model.SpaceId)
@@ -89,8 +92,8 @@
                 event.preventDefault(); // Hindra standardformuläret från att skickas
 
                 var isEmpty = false;
-                $('input[type="text"]').each(function () {
-                    if ($(this).val() === '') {
+                $('input[type="text"], select').each(function () {
+                    if ($(this).val() === '' || $(this).val() === 'Choose environment') {
                         isEmpty = true;
                         return false; // Break out of the loop
                     }

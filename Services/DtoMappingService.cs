@@ -26,12 +26,12 @@ namespace ContentfulApp.Services
                         CategoryRank = fullEntryDto.CategoryRank,
                         ShortDescription = fullEntryDto.ShortDescription,
                         Filter = fullEntryDto.Filter?._rawFilterData,
-                        //SubPageData = fullEntryDto.ConvertSubPageDataToString(),
-                        AdditionalContentDescription = fullEntryDto.ConvertAdditionalContentDescriptionToHtml(), //do not work like it should
+                        SubPageData = fullEntryDto.ConvertSubPageDataToString(),
+                        AdditionalContentDescription = fullEntryDto.ConvertAdditionalContentDescriptionToHtml(), 
                         Active = fullEntryDto.IsActiveLocale(),
                         CreateLinksOnProductPages = fullEntryDto.CreateLinksOnProductPages,
                         UseAsFacet = fullEntryDto.UseAsFacet,
-                        //Tags = fullEntryDto.GetTagsAsString(), //do not work 
+                        Tags = fullEntryDto.GetTagsIdsAsString(), 
                         Facets = fullEntryDto.GetFacetsAsString(),
                         SeoTitle = fullEntryDto.SeoInfo?.Title,
                         SeoDescription = fullEntryDto.SeoInfo?.Description,
@@ -52,8 +52,9 @@ namespace ContentfulApp.Services
                         Slug = regularEntryDto.Slug,
                         Urls = regularEntryDto.GetLastUrl(),
                         CreatedAt = regularEntryDto.Sys.CreatedAt,
+                        Tags = regularEntryDto.GetTagsIdsAsString(),
                         //archived
-                        //tags
+                        
                     };
                 default:
                     return null;

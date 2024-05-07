@@ -10,7 +10,8 @@
         public string Urls { get; set; }
         public DateTime? CreatedAt { get; set; }
 
-        //tags 
+        public string Tags { get; set; }
+
         //archived
     }
 }
