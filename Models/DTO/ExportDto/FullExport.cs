@@ -11,12 +11,12 @@ namespace ContentfulApp.Models.DTO.ExportDto
         public bool IsPrimaryCategory { get; set; }
         public string? Filter { get; set; }
         public bool CreateLinksOnProductPages { get; set; }
-        public string SubPageData { get; set; } // funkar ej 
+        public string SubPageData { get; set; } 
         public bool UseAsFacet { get; set; }
         public string? AdditionalContentDescription { get; set; } 
         public bool Active { get; set; }
         public string? H1Title { get; set; }
-        public string?  Tags { get; set; } //funkar ej
+        public string?  Tags { get; set; } 
         public string? Facets { get; set; }
         public string Urls { get; set; }
         public string? SeoTitle { get; set; }

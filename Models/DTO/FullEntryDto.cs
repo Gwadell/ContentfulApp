@@ -16,7 +16,7 @@ namespace ContentfulApp.Models.DTO
         public int CategoryRank { get; set; }
         public string ShortDescription { get; set; }
         public Filter? Filter { get; set; }
-        public JObject? SubPageData { get; set; }
+        //public JObject? SubPageData { get; set; }
         public Document? AdditionalContentDescription { get; set; }
         public List<string> Active { get; set; }
         public bool CreateLinksOnProductPages { get; set; }
@@ -101,10 +101,10 @@ namespace ContentfulApp.Models.DTO
         }
 
 
-        public string ConvertSubPageDataToString()
-        {
-            return SubPageData?.ToString();
-        }
+        //public string ConvertSubPageDataToString()
+        //{
+        //    return SubPageData?.ToString();
+        //}
 
     }
     public class Metadata

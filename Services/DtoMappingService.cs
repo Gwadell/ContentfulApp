@@ -26,7 +26,7 @@ namespace ContentfulApp.Services
                         CategoryRank = fullEntryDto.CategoryRank,
                         ShortDescription = fullEntryDto.ShortDescription,
                         Filter = fullEntryDto.Filter?._rawFilterData,
-                        SubPageData = fullEntryDto.ConvertSubPageDataToString(),
+                        //SubPageData = fullEntryDto.ConvertSubPageDataToString(),
                         AdditionalContentDescription = fullEntryDto.ConvertAdditionalContentDescriptionToHtml(), 
                         Active = fullEntryDto.IsActiveLocale(),
                         CreateLinksOnProductPages = fullEntryDto.CreateLinksOnProductPages,

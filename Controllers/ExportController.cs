@@ -12,6 +12,7 @@ using Contentful.Core.Models;
 using ContentfulApp.Services;
 using Contentful.Core.Models.Management;
 using System.Net.Mime;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace ContentfulApp.Controllers
 {
@@ -116,6 +117,21 @@ namespace ContentfulApp.Controllers
 
         //    return entries;
         //}
+
+        [HttpGet]
+        public async Task<IActionResult> GetLocales(string accessToken, string environment, string spaceId)
+        {
+            var locales = await _contentfulService.GetLocales(accessToken, environment, spaceId);
+
+            var selectListItems = locales.Select(l => new SelectListItem
+            {
+                Value = l.Code,
+                Text = l.Name
+            });
+
+            return Json(selectListItems);
+        }
+
 
     }
 }
