@@ -116,7 +116,6 @@ namespace ContentfulApp.Controllers
         private async Task<Dictionary<string, IEnumerable<object>>> GetAllEntries(List<string> contentTypes, List<string> locales, ContentfulClient client)
         {
             var allEntries = new ConcurrentDictionary<string, IEnumerable<object>>();
-            var tasks = new List<Task>();
 
             var retryPolicy = Polly.Policy
                 .Handle<IOException>()
@@ -126,22 +125,28 @@ namespace ContentfulApp.Controllers
                     _logger.LogWarning($"An IOException occurred. Retrying in {timeSpan.Seconds} seconds.");
                 });
 
-            foreach (var contentType in contentTypes)
+            // Limit the number of concurrent tasks
+            var semaphore = new SemaphoreSlim(5); // Adjust this number as needed
+
+            var tasks = contentTypes.SelectMany(contentType => locales.Select(locale => Task.Run(async () =>
             {
-                foreach (var locale in locales)
+                await semaphore.WaitAsync();
+
+                try
                 {
-                    tasks.Add(Task.Run(async () =>
+                    await retryPolicy.ExecuteAsync(async () =>
                     {
-                        await retryPolicy.ExecuteAsync(async () =>
-                        {
-                            var entries = await _contentfulService.GetEntriesForContentTypeAndLocale(client, contentType, locale);
-                            var key = $"{contentType}-{locale}";
-                            allEntries.TryAdd(key, entries);
-                            _logger.LogInformation($"Completed fetching entries for content type: {contentType} and locale: {locale}");
-                        });
-                    }));
+                        var entries = await _contentfulService.GetEntriesForContentTypeAndLocale(client, contentType, locale);
+                        var key = $"{contentType}-{locale}";
+                        allEntries.TryAdd(key, entries);
+                        _logger.LogInformation($"Completed fetching entries for content type: {contentType} and locale: {locale}");
+                    });
                 }
-            }
+                finally
+                {
+                    semaphore.Release();
+                }
+            })));
 
             await Task.WhenAll(tasks);
             return new Dictionary<string, IEnumerable<object>>(allEntries);
