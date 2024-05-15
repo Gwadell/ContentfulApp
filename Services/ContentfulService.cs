@@ -33,10 +33,10 @@ namespace ContentfulApp.Services
             return new ContentfulClient(_httpClient, options);
         }
 
-        public async Task<IEnumerable<object>> GetEntriesForContentType(ContentfulClient client, string contentType, Type dtoType, string locale)
+        public async Task<IEnumerable<object>> GetEntries(ContentfulClient client, string contentType, Type dtoType, string locale)
         {
             var skip = 0;
-            const int batchSize = 50;
+            const int batchSize = 10;
 
             var allEntries = new List<object>();
             try
@@ -49,7 +49,7 @@ namespace ContentfulApp.Services
                     queryBuilderType.GetMethod("ContentTypeIs").Invoke(queryBuilder, new object[] { contentType });
                     queryBuilderType.GetMethod("LocaleIs").Invoke(queryBuilder, new object[] { locale });
                     queryBuilderType.GetMethod("Skip").Invoke(queryBuilder, new object[] { skip });
-                    queryBuilderType.GetMethod("Include").Invoke(queryBuilder, new object[] { 1 });
+                    queryBuilderType.GetMethod("Include").Invoke(queryBuilder, new object[] { 0});
                     queryBuilderType.GetMethod("Limit").Invoke(queryBuilder, new object[] { batchSize });
 
                     var pageEntries = await client.GetEntries((dynamic)queryBuilder);
@@ -74,7 +74,7 @@ namespace ContentfulApp.Services
         public async Task<IEnumerable<object>> GetEntriesForContentTypeAndLocale(ContentfulClient client, string contentType, string locale)
         {
             var dtoType = _dtoMappingService.GetDtoType(contentType);
-            var entries = await GetEntriesForContentType(client, contentType, dtoType, locale);
+            var entries = await GetEntries(client, contentType, dtoType, locale);
 
             var exportDtoType = _dtoMappingService.GetExportDtoType(contentType);
             return entries.Select(e => _dtoMappingService.MapToExportDto(e, exportDtoType));
@@ -93,7 +93,7 @@ namespace ContentfulApp.Services
     public interface IContentfulService
     {
         Task<ContentfulClient> GetClientAsync(string accessToken, string spaceId, string environment);
-        Task<IEnumerable<object>> GetEntriesForContentType(ContentfulClient client, string contentType, Type dtoType, string locale);
+        Task<IEnumerable<object>> GetEntries(ContentfulClient client, string contentType, Type dtoType, string locale);
         Task<IEnumerable<object>> GetEntriesForContentTypeAndLocale(ContentfulClient client, string contentType, string locale);
 
         Task<IEnumerable<Locale>> GetLocales(string accessToken, string environment, string spaceId);

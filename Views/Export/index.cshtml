@@ -123,6 +123,8 @@
     <a id="excelDownloadLink" href="#">Copy this link address and put it in a new tab to download the excel file</a>
 </div>
 
+<div id="error" style="display:none;"></div>
+
 @section scripts {
     <script>
 
@@ -157,6 +159,7 @@
                 $('input[name="contentTypes"]:checked').each(function () {
                     selectedContentTypes.push($(this).val());
                 });
+
                 selectedContentTypes = selectedContentTypes.join(', ');
                 $('#contentTypesInput').val(selectedContentTypes);
 
@@ -167,13 +170,14 @@
                     data: $(this).serialize(),
                     success: function (response) {
                         $('#loading').hide();
+                        $('#error').hide();
                         var downloadLink = $('#downloadLink');
                         downloadLink.show();
                         $('#excelDownloadLink').attr('href', response);
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
                         $('#loading').hide();
-                        alert('It seems theres an issue with this Access Token' + errorThrown);
+                        $('#error').text(jqXHR.responseText).show();
                     }
                 });
 
