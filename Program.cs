@@ -11,6 +11,7 @@ builder.Services.AddContentful(builder.Configuration);
 builder.Services.AddScoped<IContentfulService, ContentfulService>();
 builder.Services.AddScoped<IExcelExportService, ExcelExportService>();
 builder.Services.AddScoped<IDtoMappingService, DtoMappingService>();
+builder.Services.AddScoped<IExcelImportService, ExcelImportService>();
 
 
 var app = builder.Build();
@@ -34,6 +35,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Export}/{action=Index}/{id?}");
+    pattern: "{controller=Import}/{action=Index}/{id?}");
 
 app.Run();

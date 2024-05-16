@@ -1,5 +1,13 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-}
+﻿
+
+<form method="post" enctype="multipart/form-data" asp-controller="Import" asp-action="Import">
+    <div>
+        <label>Access Token</label>
+        <input type="text" name="accessToken" />
+    </div>
+    <div>
+        <label>Excel File</label>
+        <input type="file" name="file" />
+    </div>
+    <button type="submit">Import</button>
+</form>

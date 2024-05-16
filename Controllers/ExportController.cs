@@ -126,7 +126,7 @@ namespace ContentfulApp.Controllers
                 });
 
             // Limit the number of concurrent tasks
-            var semaphore = new SemaphoreSlim(5); // Adjust this number as needed
+            var semaphore = new SemaphoreSlim(5);
 
             var tasks = contentTypes.SelectMany(contentType => locales.Select(locale => Task.Run(async () =>
             {
@@ -137,7 +137,7 @@ namespace ContentfulApp.Controllers
                     await retryPolicy.ExecuteAsync(async () =>
                     {
                         var entries = await _contentfulService.GetEntriesForContentTypeAndLocale(client, contentType, locale);
-                        var key = $"{contentType}-{locale}";
+                        var key = $"{contentType}, {locale}";
                         allEntries.TryAdd(key, entries);
                         _logger.LogInformation($"Completed fetching entries for content type: {contentType} and locale: {locale}");
                     });
