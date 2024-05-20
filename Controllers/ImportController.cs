@@ -242,6 +242,14 @@ namespace ContentfulApp.Controllers
                     var row = dataTable.Rows[rowIndex];
                     var id = row[0].ToString(); // Assuming the ID is in the first column
 
+                    // Map the row to a RegularExport object
+                    var regularExport = MapRowToRegularExport(row, headers);
+
+                    var regularEntryDto = MapRegularExportToDto(regularExport);
+
+                    /////___________________________________________________________//
+
+
                     // Get the existing entry with the current version
                     var entry = await managementClient.GetEntry(id);
 
@@ -251,7 +259,7 @@ namespace ContentfulApp.Controllers
                         continue;
                     }
 
-                    var regularEntryDto = MapEntryToDto(entry,locale); 
+                    //var regularEntryDto = MapEntryToDto(entry,locale); 
 
                     // Iterate over each column in the row (excluding the first one)
                     for (int columnIndex = 1; columnIndex < headers.Count; columnIndex++)
@@ -260,18 +268,31 @@ namespace ContentfulApp.Controllers
                         var newValue = row[columnIndex].ToString();
 
                         var lowerCaseHeader = header.ToLower();
-                        ////måste jag göra detta eftersom om den inte finns så vill jag skpa em ny entry
-                        //// Check if the field exists and has a value for the given locale
-                        //if (!entry.Fields.ContainsKey(lowerCaseHeader) || !entry.Fields[lowerCaseHeader].ContainsKey(locale) || entry.Fields[lowerCaseHeader][locale] == null)
-                        //{
-                        //    Console.WriteLine($"Field {header} is missing or null for entry with ID {id}.");
-                        //    continue;
-                        //}
-                        object currentValue = null; 
-
-                       
-                        currentValue = entry.Fields[lowerCaseHeader][locale].ToString();
                         
+                        object currentValue = null;
+
+                        // Check if the field exists and has a value for the given locale
+                        if (entry.Fields.ContainsKey(lowerCaseHeader) && entry.Fields[lowerCaseHeader].ContainsKey(locale) && entry.Fields[lowerCaseHeader][locale] != null)
+                        {
+                            currentValue = entry.Fields[lowerCaseHeader][locale].ToString();
+                        }
+
+                        var property = typeof(RegularEntryDto).GetProperty(header, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+
+                        // If the property exists and its value is not null, get the current value
+                        if (property != null && property.GetValue(regularEntryDto) != null)
+                        {
+                             currentValue = entry.Fields[lowerCaseHeader][locale].ToString();
+                        }
+
+                        //om det inte finns något värde så skapa en ny entry
+
+
+                        // If currentValue is still null, skip to the next header
+                        if (currentValue == null)
+                        {
+                            continue;
+                        }
 
                         // ta bort locale?? om  det inte finns på internalname?? 
 
@@ -299,7 +320,7 @@ namespace ContentfulApp.Controllers
                         // If the value has changed, update the corresponding property in the RegularEntryDto object
                         if (newValue != currentValue)
                         {
-                            var property = typeof(RegularEntryDto).GetProperty(header, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+                             //property = typeof(RegularEntryDto).GetProperty(header, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
                             if (property != null)
                             {
                                 property.SetValue(regularEntryDto, newValue);
@@ -343,11 +364,11 @@ namespace ContentfulApp.Controllers
             var dto = new RegularEntryDto()
             {
                 Sys = entry.SystemProperties,
-                //InternalName = entry.Fields.ContainsKey("internalName") ? entry.Fields["internalName"][locale].ToString() : null,
+                InternalName = entry.Fields.ContainsKey("internalName") ? entry.Fields["internalName"][locale].ToString() : null,
                 Name = entry.Fields.ContainsKey("name") ? entry.Fields["name"][locale].ToString() : null,
                 Slug = entry.Fields.ContainsKey("slug") ? entry.Fields["slug"][locale].ToString() : null,
                 //Urls = entry.Fields.ContainsKey("urls") ? JsonConvert.DeserializeObject<List<List<string>>>(entry.Fields["urls"][locale].ToString()) : null,
-                //Metadata = entry.Fields.ContainsKey("$metadata") ? JsonConvert.DeserializeObject<ContentfulMetadata>(entry.Fields["$metadata"][locale].ToString()) : null
+                Metadata = entry.Fields.ContainsKey("$metadata") ? JsonConvert.DeserializeObject<ContentfulMetadata>(entry.Fields["$metadata"][locale].ToString()) : null
             };
 
             if (entry.Fields.ContainsKey("urls"))
@@ -362,12 +383,67 @@ namespace ContentfulApp.Controllers
             return dto;
         }
 
-        private RegularImport ImportEntries(ImportModel import)
-        {
-            var importEntries = new RegularImport();
+       
+        
 
-            return importEntries;
+        private RegularExport MapRowToRegularExport(DataRow row, List<string> headers)
+        {
+            var regularExport = new RegularExport();
+
+            for (int i = 0; i < headers.Count; i++)
+            {
+                var header = headers[i];
+                var value = row[i].ToString();
+
+                var property = typeof(RegularExport).GetProperty(header, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+                if (property != null)
+                {
+                    if (property.PropertyType == typeof(int) && int.TryParse(value, out int intValue))
+                    {
+                        property.SetValue(regularExport, intValue);
+                    }
+                    else if (property.PropertyType == typeof(bool) && bool.TryParse(value, out bool boolValue))
+                    {
+                        property.SetValue(regularExport, boolValue);
+                    }
+                    else if (property.PropertyType == typeof(DateTime) && DateTime.TryParse(value, out DateTime dateValue))
+                    {
+                        property.SetValue(regularExport, dateValue);
+                    }
+                    else
+                    {
+                        property.SetValue(regularExport, value);
+                    }
+                }
+            }
+
+            return regularExport;
         }
+
+        private RegularEntryDto MapRegularExportToDto(RegularExport regularExport)
+        {
+            var regularEntryDto = new RegularEntryDto();
+
+            regularEntryDto.InternalName = regularExport.InternalName;
+            regularEntryDto.Name = regularExport.Name;
+            regularEntryDto.Slug = regularExport.Slug;
+
+            // Assuming Urls in RegularExport is a comma-separated string
+            regularEntryDto.Urls = new List<List<string>> { regularExport.Urls.Split(',').ToList() };
+
+            // Assuming Tags in RegularExport is a comma-separated string
+            if (!string.IsNullOrEmpty(regularExport.Tags))
+            {
+                regularEntryDto.Metadata = new ContentfulMetadata
+                {
+                    Tags = regularExport.Tags.Split(',').Select(tag => new Reference { Sys = new ReferenceProperties { Id = tag } }).ToList()
+                };
+            }
+
+            return regularEntryDto;
+        }
+
+
 
 
     }

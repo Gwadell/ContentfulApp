@@ -59,7 +59,7 @@ namespace ContentfulApp.Services
                     {
                         var columnNumber = createdAtColumn.Start.Column;
                         var columnRange = ws.Cells[2, columnNumber, ws.Dimension.End.Row, columnNumber];
-                        columnRange.Style.Numberformat.Format = "yyyy-mm-dd-hh-ss";
+                        columnRange.Style.Numberformat.Format = "yyyy-MM-dd";
 
                     }
 
