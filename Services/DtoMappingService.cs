@@ -54,7 +54,6 @@ namespace ContentfulApp.Services
                         CreatedAt = regularEntryDto.Sys.CreatedAt,
                         Tags = regularEntryDto.GetTagsIdsAsString(),
                         //archived
-                        
                     };
                 default:
                     return null;
