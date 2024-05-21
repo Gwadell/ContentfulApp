@@ -14,6 +14,7 @@ using System.Data;
 using System.Reflection;
 using static Contentful.RichTextParser.Parser;
 using System.Xml.Linq;
+using System.Globalization;
 
 namespace ContentfulApp.Controllers
 {
@@ -242,10 +243,72 @@ namespace ContentfulApp.Controllers
                     var row = dataTable.Rows[rowIndex];
                     var id = row[0].ToString(); // Assuming the ID is in the first column
 
-                    // Map the row to a RegularExport object
-                    var regularExport = MapRowToRegularExport(row, headers);
+                    if (contentType == "productListingPage")
+                    {
+                        var fullExport = MapRowToFullExport(row, headers);
 
-                    var regularEntryDto = MapRegularExportToDto(regularExport);
+                        var fullEntryDto = MapFullExportToDto(fullExport);
+
+                        // Get the existing entry with the current version
+                        var entryFull = await managementClient.GetEntry(id);
+
+                        if (entryFull == null)
+                        {
+                            Console.WriteLine($"Entry with ID {id} not found.");
+                            continue;
+                        }
+
+                        //var regularEntryDto = MapEntryToDto(entry,locale); 
+
+                        // Iterate over each column in the row (excluding the first one)
+                        for (int columnIndex = 1; columnIndex < headers.Count; columnIndex++)
+                        {
+                            var header = headers[columnIndex];
+                            var newValue = row[columnIndex];
+
+                            var lowerCaseHeader = char.ToLowerInvariant(header[0]) + header.Substring(1);
+
+                            object currentValue = null;
+
+                            // Check if the field exists and has a value for the given locale
+                            if (entryFull.Fields.ContainsKey(lowerCaseHeader) && entryFull.Fields[lowerCaseHeader].ContainsKey(locale) && entryFull.Fields[lowerCaseHeader][locale] != null)
+                            {
+                                var property = typeof(FullEntryDto).GetProperty(header);
+                                if (property != null)
+                                {
+                                    property.SetValue(fullEntryDto, currentValue);
+                                }
+                                currentValue = entryFull.Fields[lowerCaseHeader][locale].ToString();
+                            }
+                            if (header == "CreatedAt" && entryFull.SystemProperties.CreatedAt.HasValue)
+                            {
+                                currentValue = entryFull.SystemProperties.CreatedAt.Value.Date;
+                            }
+                            if (header == "Tags")
+                            {
+                                currentValue = entryFull.Metadata.Tags.Select(tag => tag.Sys.Id).ToList();
+                            }
+                            if (header == "Filter")
+                            {
+                                fullEntryDto.Filter._rawFilterData = currentValue as string;
+
+                            }
+
+                            // If currentValue is still null, skip to the next header
+                            if (currentValue == null)
+                            {
+                                continue;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var regularExport = MapRowToRegularExport(row, headers);
+
+                        var regularEntryDto = MapRegularExportToDto(regularExport);
+                    }
+
+                   
 
                     /////___________________________________________________________//
 
@@ -265,7 +328,7 @@ namespace ContentfulApp.Controllers
                     for (int columnIndex = 1; columnIndex < headers.Count; columnIndex++)
                     {
                         var header = headers[columnIndex];
-                        var newValue = row[columnIndex].ToString();
+                        var newValue = row[columnIndex]; 
 
                         var lowerCaseHeader = header.ToLower();
                         
@@ -274,81 +337,88 @@ namespace ContentfulApp.Controllers
                         // Check if the field exists and has a value for the given locale
                         if (entry.Fields.ContainsKey(lowerCaseHeader) && entry.Fields[lowerCaseHeader].ContainsKey(locale) && entry.Fields[lowerCaseHeader][locale] != null)
                         {
+                            var property = typeof(FullEntryDto).GetProperty(header);
+                            if (property != null)
+                            {
+                                //property.SetValue(fullEntryDto, currentValue);
+                            }
                             currentValue = entry.Fields[lowerCaseHeader][locale].ToString();
                         }
-
-                        var property = typeof(RegularEntryDto).GetProperty(header, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
-
-                        // If the property exists and its value is not null, get the current value
-                        if (property != null && property.GetValue(regularEntryDto) != null)
+                        if (header == "CreatedAt" && entry.SystemProperties.CreatedAt.HasValue)
                         {
-                             currentValue = entry.Fields[lowerCaseHeader][locale].ToString();
+                            currentValue = entry.SystemProperties.CreatedAt.Value.Date;
                         }
-
-                        //om det inte finns något värde så skapa en ny entry
-
-
+                        if (header == "Tags")
+                        {
+                            currentValue = entry.Metadata.Tags.Select(tag => tag.Sys.Id).ToList();
+                        }
+                        
                         // If currentValue is still null, skip to the next header
                         if (currentValue == null)
                         {
                             continue;
                         }
-
-                        // ta bort locale?? om  det inte finns på internalname?? 
-
+                        
+                        //om det inte finns något värde så skapa en ny entry
+                       
                         // Try to parse as boolean
                         if (bool.TryParse(currentValue.ToString(), out bool boolValue))
                         {
                             currentValue = boolValue;
+                            if (bool.TryParse(newValue.ToString(), out bool newBoolValue))
+                            {
+                                newValue = newBoolValue;
+                            }
                         }
                         // Try to parse as integer
                         else if (int.TryParse(currentValue.ToString(), out int intValue))
                         {
                             currentValue = intValue;
+                            if (int.TryParse(newValue.ToString(), out int newIntValue))
+                            {
+                                newValue = newIntValue;
+                            }
                         }
                         // Try to parse as DateTime
                         else if (DateTime.TryParse(currentValue.ToString(), out DateTime dateValue))
                         {
                             currentValue = dateValue;
+                            if (DateTime.TryParse(newValue.ToString(), out DateTime newDateValue))
+                            {
+                                newValue = newDateValue;
+                            }
                         }
-                        // If none of the above, keep as string
-                        else
-                        {
-                            currentValue = currentValue.ToString();
-                        }
+                        
 
                         // If the value has changed, update the corresponding property in the RegularEntryDto object
-                        if (newValue != currentValue)
+                        if (newValue.ToString() != currentValue.ToString())
                         {
-                             //property = typeof(RegularEntryDto).GetProperty(header, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+                            var property = typeof(RegularExport).GetProperty(header);
+                            
                             if (property != null)
                             {
-                                property.SetValue(regularEntryDto, newValue);
+
+
+                               // property.SetValue(regularExport, newValue);
                             }
 
-                            // Update and publish the entry
+                            //entry version
                             var version = entry.SystemProperties.Version;
 
-                            try
-                            {
-                                //// Unpublish the entry if it's already published
-                                //if (entry.SystemProperties.Version == entry.SystemProperties.PublishedVersion)
-                                //{
-                                //    await managementClient.UnpublishEntry(id, (int)version);
-                                //}
+                            //try
+                            //{
+                            //   // Update the entry
+                            //    var updatedEntry = await managementClient.UpdateEntryForLocale(regularExport, id, locale);
 
-                                // Update the entry
-                                var updatedEntry = await managementClient.UpdateEntryForLocale(regularEntryDto, id, locale);
+                            //    // Publish the updated entry
+                            //    var publishedEntry = await managementClient.PublishEntry(id, (int)updatedEntry.SystemProperties.Version);
 
-                                // Publish the updated entry
-                                var publishedEntry = await managementClient.PublishEntry(id, (int)updatedEntry.SystemProperties.Version);
-
-                                Console.WriteLine($"Entry with ID {id} updated and published successfully.");
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine($"Error updating or publishing entry with ID {id}: {ex.Message}");
-                            }
+                            //    Console.WriteLine($"Entry with ID {id} updated and published successfully.");
+                            //}
+                            //catch (Exception ex)
+                            //{
+                            //    Console.WriteLine($"Error updating or publishing entry with ID {id}: {ex.Message}");
+                            //}
                         }
                     }
 
@@ -398,7 +468,11 @@ namespace ContentfulApp.Controllers
                 var property = typeof(RegularExport).GetProperty(header, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
                 if (property != null)
                 {
-                    if (property.PropertyType == typeof(int) && int.TryParse(value, out int intValue))
+                    if (string.IsNullOrEmpty(value))
+                    {
+                        property.SetValue(regularExport, null);
+                    }
+                    else if (property.PropertyType == typeof(int) && int.TryParse(value, out int intValue))
                     {
                         property.SetValue(regularExport, intValue);
                     }
@@ -406,9 +480,17 @@ namespace ContentfulApp.Controllers
                     {
                         property.SetValue(regularExport, boolValue);
                     }
-                    else if (property.PropertyType == typeof(DateTime) && DateTime.TryParse(value, out DateTime dateValue))
+                    else if (property.PropertyType == typeof(DateTime?))
                     {
-                        property.SetValue(regularExport, dateValue);
+                        // Try to parse the date in the format "yyyy-MM-dd"
+                        if (DateTime.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateValue))
+                        {
+                            property.SetValue(regularExport, dateValue);
+                        }
+                        else
+                        {
+                            throw new FormatException($"Could not parse date: {value}");
+                        }
                     }
                     else
                     {
@@ -420,16 +502,66 @@ namespace ContentfulApp.Controllers
             return regularExport;
         }
 
+        private FullExport MapRowToFullExport(DataRow row, List<string> headers)
+        {
+            var fullExport = new FullExport();
+
+            for (int i = 0; i < headers.Count; i++)
+            {
+                var header = headers[i];
+                var value = row[i].ToString();
+
+                var property = typeof(FullExport).GetProperty(header, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+                if (property != null)
+                {
+                    if (string.IsNullOrEmpty(value))
+                    {
+                        property.SetValue(fullExport, null);
+                    }
+                    else if (property.PropertyType == typeof(int) && int.TryParse(value, out int intValue))
+                    {
+                        property.SetValue(fullExport, intValue);
+                    }
+                    else if (property.PropertyType == typeof(bool) && bool.TryParse(value, out bool boolValue))
+                    {
+                        property.SetValue(fullExport, boolValue);
+                    }
+                    else if (property.PropertyType == typeof(DateTime?))
+                    {
+                        // Try to parse the date in the format "yyyy-MM-dd"
+                        if (DateTime.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateValue))
+                        {
+                            property.SetValue(fullExport, dateValue);
+                        }
+                        else
+                        {
+                            throw new FormatException($"Could not parse date: {value}");
+                        }
+                    }
+                    else
+                    {
+                        property.SetValue(fullExport, value);
+                    }
+                }
+            }
+
+            return fullExport;
+        }
+
+
         private RegularEntryDto MapRegularExportToDto(RegularExport regularExport)
         {
             var regularEntryDto = new RegularEntryDto();
-
+            
             regularEntryDto.InternalName = regularExport.InternalName;
             regularEntryDto.Name = regularExport.Name;
             regularEntryDto.Slug = regularExport.Slug;
 
-            // Assuming Urls in RegularExport is a comma-separated string
-            regularEntryDto.Urls = new List<List<string>> { regularExport.Urls.Split(',').ToList() };
+
+            if (!string.IsNullOrEmpty(regularExport.Urls))
+            {
+                regularEntryDto.Urls = new List<List<string>> { regularExport.Urls.Split(',').ToList() };
+            }
 
             // Assuming Tags in RegularExport is a comma-separated string
             if (!string.IsNullOrEmpty(regularExport.Tags))
@@ -440,9 +572,33 @@ namespace ContentfulApp.Controllers
                 };
             }
 
+            regularExport.CreatedAt = regularExport.CreatedAt;
+
             return regularEntryDto;
         }
 
+        private FullEntryDto MapFullExportToDto(FullExport fullExport)
+        {
+            var fullEntryDto = new FullEntryDto();
+
+            fullEntryDto.Sys = new SystemProperties { Id = fullExport.Id, CreatedAt = fullExport.CreatedAt };
+            fullEntryDto.InternalName = fullExport.InternalName;
+            fullEntryDto.Name = fullExport.Name;
+            fullEntryDto.IsPrimaryCategory = fullExport.IsPrimaryCategory;
+            fullEntryDto.CategoryRank = fullExport.CategoryRank;
+            fullEntryDto.ShortDescription = fullExport.ShortDescription;
+            fullEntryDto.Filter = new Filter { _rawFilterData = fullExport.Filter };
+            fullEntryDto.CreateLinksOnProductPages = fullExport.CreateLinksOnProductPages;
+            fullEntryDto.UseAsFacet = fullExport.UseAsFacet;
+            //fullEntryDto.AdditionalContentDescription = new Document { Content = fullExport.AdditionalContentDescription };
+            fullEntryDto.Active = new List<string> { fullExport.Active.ToString() };
+            fullEntryDto.H1Title = fullExport.H1Title;
+            fullEntryDto.Slug = fullExport.Slug;
+            fullEntryDto.Urls = new List<List<string>> { new List<string> { fullExport.Urls } };
+            fullEntryDto.SeoInfo = new SeoInfo { Title = fullExport.SeoTitle, Description = fullExport.SeoDescription };
+
+            return fullEntryDto;
+        }
 
 
 
