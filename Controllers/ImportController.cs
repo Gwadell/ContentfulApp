@@ -23,200 +23,23 @@ namespace ContentfulApp.Controllers
         private readonly IContentfulManagementClient _client;
         private readonly IExcelImportService _excelImportService; 
         private readonly IContentfulService _contentfulService;
+        private readonly IDtoMappingService _dtoMappingService; 
 
         public async Task<IActionResult> Index()
         {
-            //var publishedEntry = await PublishEntrys(new ImportModel());
-
             return View();
         }
 
 
-        public ImportController(IContentfulManagementClient client, IContentfulService contentfulService, IExcelImportService excelImportServide)
+        public ImportController(IContentfulManagementClient client, IContentfulService contentfulService, IExcelImportService excelImportServide, IDtoMappingService dtoMappingService)
         {
             _client = client;
             _contentfulService = contentfulService;
             _excelImportService = excelImportServide;
+            _dtoMappingService = dtoMappingService;
         }
 
-        private async Task<Entry<dynamic>> PublishEntrys(ImportModel import)
-        {
-            try
-            {
-                var managementClient = await _contentfulService.GetManagementClient(import.AccessToken, import.SpaceId, import.Environment);
-                var id = "sP0pnINXLFs7ZuiSut5da";
-
-                var entry = await managementClient.GetEntry(id);
-
-                if (entry == null)
-                {
-                    Console.WriteLine($"{id} not found.");
-                    return null;
-                }
-
-                // Publish the entry
-                var publishedEntry = await managementClient.PublishEntry(id, (int)entry.SystemProperties.Version);
-
-                return publishedEntry;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($" {ex.Message}");
-                return null;
-            }
-        }
-
-
-        //[HttpPost]
-        //public async Task<IActionResult> Import(IFormFile file, ImportModel import)
-        //{
-        //    var managementClient = await _contentfulService.GetManagementClient(import.AccessToken, import.SpaceId, import.Environment);
-
-        //    // Use EPPlus to read the Excel file
-        //    var data = _excelImportService.ImportFromExcel(file);
-
-        //    foreach (var sheet in data)
-        //    {
-        //        var name = sheet.Key.Split(",");
-        //        var contentType = name[0];
-        //        var locale = name[1].Replace(" ", "");
-
-        //        var dataTable = sheet.Value;
-
-        //        //For each row in the Excel file, update the corresponding content in Contentful
-        //        foreach (DataRow row in dataTable.Rows)
-        //        {
-        //            var id = row[0].ToString(); // Assuming the ID is in the first column
-
-        //            var newName = row[1].ToString(); // Assuming the new name is in the second column
-
-        //            // Get the existing entry with the current version
-        //            var entry = await managementClient.GetEntry(id);
-
-        //            // If the name field is null, skip this row and continue with the next one
-        //            if (entry.Fields["name"][locale].ToString() == null){ continue;}
-
-        //            var currentName = entry.Fields["name"][locale].ToString();
-
-        //            // If the name field is null or does not exist, skip this row and continue with the next one
-        //            if (entry.Fields.ContainsKey("name") && entry.Fields["name"].ContainsKey(locale) && entry.Fields["name"][locale] != null)
-        //            {
-
-
-        //                if (newName != currentName)
-        //                {
-        //                    var regularEntryDto = new RegularEntryDto();
-        //                    regularEntryDto.Name = newName;
-
-        //                    var version = entry.SystemProperties.Version;
-
-        //                    if (entry.SystemProperties.Version == entry.SystemProperties.PublishedVersion)
-        //                    {
-        //                        var unpublishedEntry = await managementClient.UnpublishEntry(id, (int)version);
-        //                    }
-
-        //                    var updatedEntry = await managementClient.UpdateEntryForLocale(regularEntryDto, id, locale);
-
-        //                    // Get the updated version number
-        //                    var updatedVersion = updatedEntry.SystemProperties.Version;
-        //                    Console.WriteLine($"Entry ID: {entry.SystemProperties.Id}");
-        //                    Console.WriteLine($"Entry Version: {entry.SystemProperties.Version}");
-        //                    Console.WriteLine($"Entry Published Version: {entry.SystemProperties.PublishedVersion}");
-        //                    Console.WriteLine($"Entry Published At: {entry.SystemProperties.PublishedAt}");
-        //                    Console.WriteLine($"Entry Updated At: {entry.SystemProperties.UpdatedAt}");
-
-        //                    var publichEntry = await managementClient.PublishEntry(id, (int)updatedVersion);
-        //                }
-        //            }
-        //            else
-        //            {
-        //                continue;
-        //            }
-
-        //        }
-        //    }
-
-        //    return Ok();
-        //}
-
-        //[HttpPost]
-        //public async Task<IActionResult> Import(IFormFile file, ImportModel import)
-        //{
-        //    var managementClient = await _contentfulService.GetManagementClient(import.AccessToken, import.SpaceId, import.Environment);
-
-        //    // Use EPPlus to read the Excel file
-        //    var data = _excelImportService.ImportFromExcel(file);
-
-        //    foreach (var sheet in data)
-        //    {
-        //        var name = sheet.Key.Split(",");
-        //        var contentType = name[0];
-        //        var locale = name[1].Replace(" ", "");
-
-        //        var dataTable = sheet.Value;
-
-        //        // Extract header row
-        //        var headerRow = dataTable.Rows[0];
-        //        var headers = headerRow.Table.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToList();
-
-        //        // For each row in the Excel file, update the corresponding content in Contentful
-        //        foreach (DataRow row in dataTable.Rows)
-        //        {
-        //            var id = row[0].ToString(); // Assuming the ID is in the first column
-        //            var newName = row[1].ToString(); // Assuming the new name is in the second column
-
-
-        //            // Get the existing entry with the current version
-        //            var entry = await managementClient.GetEntry(id);
-
-        //            if (entry == null)
-        //            {
-        //                Console.WriteLine($"Entry with ID {id} not found.");
-        //                continue;
-        //            }
-
-        //            // Check if the field exists and has a value for the given locale
-        //            if (!entry.Fields.ContainsKey("name") || !entry.Fields["name"].ContainsKey(locale) || entry.Fields["name"][locale] == null)
-        //            {
-        //                Console.WriteLine($"Name field is missing or null for entry with ID {id}.");
-        //                continue;
-        //            }
-
-        //            var currentName = entry.Fields["name"][locale].ToString();
-
-        //            // If the name has changed, update and publish the entry
-        //            if (newName != currentName)
-        //            {
-        //                var regularEntryDto = new RegularEntryDto { Name = newName };
-        //                var version = entry.SystemProperties.Version;
-
-        //                try
-        //                {
-        //                    //// Unpublish the entry if it's already published
-        //                    //if (entry.SystemProperties.Version == entry.SystemProperties.PublishedVersion)
-        //                    //{
-        //                    //    await managementClient.UnpublishEntry(id, (int)version);
-        //                    //}
-
-        //                    // Update the entry
-        //                    var updatedEntry = await managementClient.UpdateEntryForLocale(regularEntryDto, id, locale);
-
-        //                    // Publish the updated entry
-        //                    var publishedEntry = await managementClient.PublishEntry(id, (int)updatedEntry.SystemProperties.Version);
-
-        //                    Console.WriteLine($"Entry with ID {id} updated and published successfully.");
-        //                }
-        //                catch (Exception ex)
-        //                {
-        //                    Console.WriteLine($"Error updating or publishing entry with ID {id}: {ex.Message}");
-        //                }
-        //            }
-        //        }
-        //    }
-
-        //    return Ok();
-        //}
-
+        
         [HttpPost]
         public async Task<IActionResult> Import(IFormFile file, ImportModel import)
         {
@@ -245,216 +68,182 @@ namespace ContentfulApp.Controllers
 
                     if (contentType == "productListingPage")
                     {
-                        var fullExport = MapRowToFullExport(row, headers);
+                        var newEntry = MapRowToFullExport(row, headers);
 
-                        var fullEntryDto = MapFullExportToDto(fullExport);
+                        //var fullEntryDto = MapFullExportToDto(newEntry);
 
                         // Get the existing entry with the current version
-                        var entryFull = await managementClient.GetEntry(id);
+                        var getEntry = await managementClient.GetEntry(id);
+                       
+                        var currentEntry = MapFullEntryToDto(getEntry, locale);
+                        
+                        var fullCurrentEntry = (FullExport)_dtoMappingService.MapToExportDto(currentEntry, typeof(FullExport));
 
-                        if (entryFull == null)
+                        bool isUpdated = false;
+
+                        foreach (PropertyInfo property in typeof(FullExport).GetProperties())
                         {
-                            Console.WriteLine($"Entry with ID {id} not found.");
-                            continue;
-                        }
-
-                        //var regularEntryDto = MapEntryToDto(entry,locale); 
-
-                        // Iterate over each column in the row (excluding the first one)
-                        for (int columnIndex = 1; columnIndex < headers.Count; columnIndex++)
-                        {
-                            var header = headers[columnIndex];
-                            var newValue = row[columnIndex];
-
-                            var lowerCaseHeader = char.ToLowerInvariant(header[0]) + header.Substring(1);
-
-                            object currentValue = null;
-
-                            // Check if the field exists and has a value for the given locale
-                            if (entryFull.Fields.ContainsKey(lowerCaseHeader) && entryFull.Fields[lowerCaseHeader].ContainsKey(locale) && entryFull.Fields[lowerCaseHeader][locale] != null)
+                            if (property.Name == "CreatedAt")
                             {
-                                var property = typeof(FullEntryDto).GetProperty(header);
-                                if (property != null)
+                                var currentValue = property.GetValue(fullCurrentEntry);
+                                var newValue = property.GetValue(newEntry);
+
+                                if (currentValue != null && newValue != null)
                                 {
-                                    property.SetValue(fullEntryDto, currentValue);
+                                    // Convert DateTime to string in "yyyy-MM-dd" format
+                                    string currentDateString = ((DateTime)currentValue).ToString("yyyy-MM-dd");
+                                    string newDateString = ((DateTime)newValue).ToString("yyyy-MM-dd");
+
+                                    // Compare dates
+                                    if (!currentDateString.Equals(newDateString))
+                                    {
+                                        // If dates are different, update the date and set the time to 00:00
+                                        DateTime newDate = DateTime.Parse(newDateString);
+                                        property.SetValue(fullCurrentEntry, newDate);
+                                        isUpdated = true;
+                                    }
                                 }
-                                currentValue = entryFull.Fields[lowerCaseHeader][locale].ToString();
                             }
-                            if (header == "CreatedAt" && entryFull.SystemProperties.CreatedAt.HasValue)
+                            else
                             {
-                                currentValue = entryFull.SystemProperties.CreatedAt.Value.Date;
-                            }
-                            if (header == "Tags")
-                            {
-                                currentValue = entryFull.Metadata.Tags.Select(tag => tag.Sys.Id).ToList();
-                            }
-                            if (header == "Filter")
-                            {
-                                fullEntryDto.Filter._rawFilterData = currentValue as string;
+                                var currentValue = property.GetValue(fullCurrentEntry);
+                                var newValue = property.GetValue(newEntry);
 
-                            }
-
-                            // If currentValue is still null, skip to the next header
-                            if (currentValue == null)
-                            {
-                                continue;
+                                if (newValue != null && !newValue.Equals(currentValue))
+                                {
+                                    property.SetValue(fullCurrentEntry, newValue);
+                                    isUpdated = true;
+                                }
                             }
                         }
+
+                        var newEntrytoUpdate = MapFullExportToDto(fullCurrentEntry);
+                        
+                        if (isUpdated)
+                        {
+                            // Update the entry
+                            var updatedEntry = await managementClient.UpdateEntryForLocale(newEntrytoUpdate, id, locale);
+
+                            await Task.Delay(2000);
+
+                            // Publish the updated entry
+                            var publishedEntry = await managementClient.PublishEntry(id, (int)updatedEntry.SystemProperties.Version);
+                        }
+                        
                     }
                     else
                     {
-                        var regularExport = MapRowToRegularExport(row, headers);
+                        var newEntry = MapRowToRegularExport(row, headers);
 
-                        var regularEntryDto = MapRegularExportToDto(regularExport);
-                    }
+                        // Get the existing entry with the current version
+                        var getEntry = await managementClient.GetEntry(id);
+                        var currentEntry = MapRegularEntryToDto(getEntry, locale);
 
-                   
+                        var regularCurrentEntry = (RegularExport)_dtoMappingService.MapToExportDto(currentEntry, typeof(RegularExport));
 
-                    /////___________________________________________________________//
+                        bool isUpdated = false;
 
-
-                    // Get the existing entry with the current version
-                    var entry = await managementClient.GetEntry(id);
-
-                    if (entry == null)
-                    {
-                        Console.WriteLine($"Entry with ID {id} not found.");
-                        continue;
-                    }
-
-                    //var regularEntryDto = MapEntryToDto(entry,locale); 
-
-                    // Iterate over each column in the row (excluding the first one)
-                    for (int columnIndex = 1; columnIndex < headers.Count; columnIndex++)
-                    {
-                        var header = headers[columnIndex];
-                        var newValue = row[columnIndex]; 
-
-                        var lowerCaseHeader = header.ToLower();
-                        
-                        object currentValue = null;
-
-                        // Check if the field exists and has a value for the given locale
-                        if (entry.Fields.ContainsKey(lowerCaseHeader) && entry.Fields[lowerCaseHeader].ContainsKey(locale) && entry.Fields[lowerCaseHeader][locale] != null)
+                        foreach (PropertyInfo property in typeof(RegularExport).GetProperties())
                         {
-                            var property = typeof(FullEntryDto).GetProperty(header);
-                            if (property != null)
+                            if (property.Name == "CreatedAt")
                             {
-                                //property.SetValue(fullEntryDto, currentValue);
+                                var currentValue = property.GetValue(regularCurrentEntry);
+                                var newValue = property.GetValue(newEntry);
+
+                                if (currentValue != null && newValue != null)
+                                {
+                                    // Convert DateTime to string in "yyyy-MM-dd" format
+                                    string currentDateString = ((DateTime)currentValue).ToString("yyyy-MM-dd");
+                                    string newDateString = ((DateTime)newValue).ToString("yyyy-MM-dd");
+
+                                    // Compare dates
+                                    if (!currentDateString.Equals(newDateString))
+                                    {
+                                        // If dates are different, update the date and set the time to 00:00
+                                        DateTime newDate = DateTime.Parse(newDateString);
+                                        property.SetValue(regularCurrentEntry, newDate);
+                                        isUpdated = true;
+                                    }
+                                }
                             }
-                            currentValue = entry.Fields[lowerCaseHeader][locale].ToString();
-                        }
-                        if (header == "CreatedAt" && entry.SystemProperties.CreatedAt.HasValue)
-                        {
-                            currentValue = entry.SystemProperties.CreatedAt.Value.Date;
-                        }
-                        if (header == "Tags")
-                        {
-                            currentValue = entry.Metadata.Tags.Select(tag => tag.Sys.Id).ToList();
-                        }
-                        
-                        // If currentValue is still null, skip to the next header
-                        if (currentValue == null)
-                        {
-                            continue;
-                        }
-                        
-                        //om det inte finns något värde så skapa en ny entry
-                       
-                        // Try to parse as boolean
-                        if (bool.TryParse(currentValue.ToString(), out bool boolValue))
-                        {
-                            currentValue = boolValue;
-                            if (bool.TryParse(newValue.ToString(), out bool newBoolValue))
+                            else
                             {
-                                newValue = newBoolValue;
+                                var currentValue = property.GetValue(regularCurrentEntry);
+                                var newValue = property.GetValue(newEntry);
+
+                                if (newValue != null && !newValue.Equals(currentValue))
+                                {
+                                    property.SetValue(regularCurrentEntry, newValue);
+                                    isUpdated = true;
+                                }
                             }
                         }
-                        // Try to parse as integer
-                        else if (int.TryParse(currentValue.ToString(), out int intValue))
+                        var newEntrytoUpdate = MapRegularExportToDto(regularCurrentEntry);
+
+                        if (isUpdated)
                         {
-                            currentValue = intValue;
-                            if (int.TryParse(newValue.ToString(), out int newIntValue))
-                            {
-                                newValue = newIntValue;
-                            }
-                        }
-                        // Try to parse as DateTime
-                        else if (DateTime.TryParse(currentValue.ToString(), out DateTime dateValue))
-                        {
-                            currentValue = dateValue;
-                            if (DateTime.TryParse(newValue.ToString(), out DateTime newDateValue))
-                            {
-                                newValue = newDateValue;
-                            }
-                        }
-                        
+                            // Update the entry
+                            var updatedEntry = await managementClient.UpdateEntryForLocale(newEntrytoUpdate, id, locale);
 
-                        // If the value has changed, update the corresponding property in the RegularEntryDto object
-                        if (newValue.ToString() != currentValue.ToString())
-                        {
-                            var property = typeof(RegularExport).GetProperty(header);
-                            
-                            if (property != null)
-                            {
+                            await Task.Delay(2000);
 
-
-                               // property.SetValue(regularExport, newValue);
-                            }
-
-                            //entry version
-                            var version = entry.SystemProperties.Version;
-
-                            //try
-                            //{
-                            //   // Update the entry
-                            //    var updatedEntry = await managementClient.UpdateEntryForLocale(regularExport, id, locale);
-
-                            //    // Publish the updated entry
-                            //    var publishedEntry = await managementClient.PublishEntry(id, (int)updatedEntry.SystemProperties.Version);
-
-                            //    Console.WriteLine($"Entry with ID {id} updated and published successfully.");
-                            //}
-                            //catch (Exception ex)
-                            //{
-                            //    Console.WriteLine($"Error updating or publishing entry with ID {id}: {ex.Message}");
-                            //}
+                            // Publish the updated entry
+                            var publishedEntry = await managementClient.PublishEntry(id, (int)updatedEntry.SystemProperties.Version);
                         }
                     }
-
-                  
                 }
             }
-
             return Ok();
         }
 
-        private RegularEntryDto MapEntryToDto(Entry<dynamic> entry,string locale)
+        
+
+        private RegularEntryDto MapRegularEntryToDto(Entry<dynamic> entry,string locale)
         {
             var dto = new RegularEntryDto()
             {
                 Sys = entry.SystemProperties,
-                InternalName = entry.Fields.ContainsKey("internalName") ? entry.Fields["internalName"][locale].ToString() : null,
+                InternalName = entry.Fields.ContainsKey("internalName") && entry.Fields["internalName"][locale] != null ? entry.Fields["internalName"][locale].ToString() : null,
                 Name = entry.Fields.ContainsKey("name") ? entry.Fields["name"][locale].ToString() : null,
                 Slug = entry.Fields.ContainsKey("slug") ? entry.Fields["slug"][locale].ToString() : null,
-                //Urls = entry.Fields.ContainsKey("urls") ? JsonConvert.DeserializeObject<List<List<string>>>(entry.Fields["urls"][locale].ToString()) : null,
+                Urls = entry.Fields.ContainsKey("urls") ? JsonConvert.DeserializeObject<List<List<string>>>(entry.Fields["urls"][locale].ToString()) : null,
                 Metadata = entry.Fields.ContainsKey("$metadata") ? JsonConvert.DeserializeObject<ContentfulMetadata>(entry.Fields["$metadata"][locale].ToString()) : null
             };
 
-            if (entry.Fields.ContainsKey("urls"))
+            return dto;
+        }
+
+        private FullEntryDto MapFullEntryToDto(Entry<dynamic> entry, string locale)
+        {
+            var dto = new FullEntryDto()
             {
-                var urls = JsonConvert.DeserializeObject<List<List<string>>>(entry.Fields["urls"][locale].ToString());
-                if (urls.Count > 0 && urls[urls.Count - 1].Count > 0)
-                {
-                    dto.Urls = new List<List<string>> { new List<string> { urls[urls.Count - 1][urls[urls.Count - 1].Count - 1] } };
-                }
+                Sys = entry.SystemProperties,
+                InternalName = entry.Fields.ContainsKey("internalName") ? entry.Fields["internalName"][locale].ToString() : null,
+                Name = entry.Fields.ContainsKey("name") ? entry.Fields["name"][locale].ToString() : null,
+                IsPrimaryCategory = entry.Fields.ContainsKey("isPrimaryCategory") ? bool.Parse(entry.Fields["isPrimaryCategory"][locale].ToString()) : false,
+                CategoryRank = entry.Fields.ContainsKey("categoryRank") ? int.Parse(entry.Fields["categoryRank"][locale].ToString()) : 0,
+                ShortDescription = entry.Fields.ContainsKey("shortDescription") ? entry.Fields["shortDescription"][locale].ToString() : null,
+                Filter = entry.Fields.ContainsKey("filter") ? JsonConvert.DeserializeObject<Filter>(entry.Fields["filter"][locale].ToString()) : null,
+                //AdditionalContentDescription = entry.Fields.ContainsKey("additionalContentDescription") ? JsonConvert.DeserializeObject<Document>(entry.Fields["additionalContentDescription"][locale].ToString()) : null,
+                Active = entry.Fields.ContainsKey("active") ? JsonConvert.DeserializeObject<List<string>>(entry.Fields["active"][locale].ToString()) : null,
+                CreateLinksOnProductPages = entry.Fields.ContainsKey("createLinksOnProductPages") ? bool.Parse(entry.Fields["createLinksOnProductPages"][locale].ToString()) : false,
+                UseAsFacet = entry.Fields.ContainsKey("useAsFacet") ? bool.Parse(entry.Fields["useAsFacet"][locale].ToString()) : false,
+                SeoInfo = entry.Fields.ContainsKey("seoInfo") ? JsonConvert.DeserializeObject<SeoInfo>(entry.Fields["seoInfo"][locale].ToString()) : null,
+                Metadata = entry.Fields.ContainsKey("$metadata") ? JsonConvert.DeserializeObject<ContentfulMetadata>(entry.Fields["$metadata"][locale].ToString()) : null,
+                Facets = entry.Fields.ContainsKey("facets") ? JsonConvert.DeserializeObject<List<string>>(entry.Fields["facets"][locale].ToString()) : null,
+                Slug = entry.Fields.ContainsKey("slug") ? entry.Fields["slug"][locale].ToString() : null,
+                Urls = entry.Fields.ContainsKey("urls") ? JsonConvert.DeserializeObject<List<List<string>>>(entry.Fields["urls"][locale].ToString()) : null
+            };
+
+            // Check if the h1Title field exists for the given locale
+            if (entry.Fields.ContainsKey("h1Title") && entry.Fields["h1Title"].ContainsKey(locale))
+            {
+                dto.H1Title = entry.Fields["h1Title"][locale].ToString();
             }
 
             return dto;
         }
 
-       
-        
 
         private RegularExport MapRowToRegularExport(DataRow row, List<string> headers)
         {
@@ -480,17 +269,9 @@ namespace ContentfulApp.Controllers
                     {
                         property.SetValue(regularExport, boolValue);
                     }
-                    else if (property.PropertyType == typeof(DateTime?))
+                    else if (property.PropertyType == typeof(DateTime?) && DateTime.TryParse(value, out DateTime dateValue))
                     {
-                        // Try to parse the date in the format "yyyy-MM-dd"
-                        if (DateTime.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateValue))
-                        {
-                            property.SetValue(regularExport, dateValue);
-                        }
-                        else
-                        {
-                            throw new FormatException($"Could not parse date: {value}");
-                        }
+                        property.SetValue(regularExport, dateValue);
                     }
                     else
                     {
@@ -526,17 +307,9 @@ namespace ContentfulApp.Controllers
                     {
                         property.SetValue(fullExport, boolValue);
                     }
-                    else if (property.PropertyType == typeof(DateTime?))
+                    else if (property.PropertyType == typeof(DateTime?) && DateTime.TryParse(value, out DateTime dateValue))
                     {
-                        // Try to parse the date in the format "yyyy-MM-dd"
-                        if (DateTime.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateValue))
-                        {
-                            property.SetValue(fullExport, dateValue);
-                        }
-                        else
-                        {
-                            throw new FormatException($"Could not parse date: {value}");
-                        }
+                        property.SetValue(fullExport, dateValue);
                     }
                     else
                     {
@@ -548,31 +321,22 @@ namespace ContentfulApp.Controllers
             return fullExport;
         }
 
-
         private RegularEntryDto MapRegularExportToDto(RegularExport regularExport)
         {
             var regularEntryDto = new RegularEntryDto();
             
+            regularEntryDto.Sys = new SystemProperties { Id = regularExport.Id, CreatedAt = regularExport.CreatedAt };
             regularEntryDto.InternalName = regularExport.InternalName;
             regularEntryDto.Name = regularExport.Name;
             regularEntryDto.Slug = regularExport.Slug;
-
-
-            if (!string.IsNullOrEmpty(regularExport.Urls))
-            {
-                regularEntryDto.Urls = new List<List<string>> { regularExport.Urls.Split(',').ToList() };
-            }
-
-            // Assuming Tags in RegularExport is a comma-separated string
-            if (!string.IsNullOrEmpty(regularExport.Tags))
+            regularEntryDto.Urls = new List<List<string>> { new List<string> { regularExport.Urls } };
+            if (regularExport.Tags != null)
             {
                 regularEntryDto.Metadata = new ContentfulMetadata
                 {
                     Tags = regularExport.Tags.Split(',').Select(tag => new Reference { Sys = new ReferenceProperties { Id = tag } }).ToList()
                 };
             }
-
-            regularExport.CreatedAt = regularExport.CreatedAt;
 
             return regularEntryDto;
         }
@@ -590,17 +354,15 @@ namespace ContentfulApp.Controllers
             fullEntryDto.Filter = new Filter { _rawFilterData = fullExport.Filter };
             fullEntryDto.CreateLinksOnProductPages = fullExport.CreateLinksOnProductPages;
             fullEntryDto.UseAsFacet = fullExport.UseAsFacet;
-            //fullEntryDto.AdditionalContentDescription = new Document { Content = fullExport.AdditionalContentDescription };
+            //fullEntryDto.AdditionalContentDescription = new Document { Content = newEntry.AdditionalContentDescription };
             fullEntryDto.Active = new List<string> { fullExport.Active.ToString() };
             fullEntryDto.H1Title = fullExport.H1Title;
             fullEntryDto.Slug = fullExport.Slug;
             fullEntryDto.Urls = new List<List<string>> { new List<string> { fullExport.Urls } };
-            fullEntryDto.SeoInfo = new SeoInfo { Title = fullExport.SeoTitle, Description = fullExport.SeoDescription };
+            //fullEntryDto.SeoInfo = new SeoInfo { Title = fullExport.SeoTitle, Description = fullExport.SeoDescription };
+            //tags och metadata?? 
 
             return fullEntryDto;
         }
-
-
-
     }
 }

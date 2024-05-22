@@ -90,7 +90,8 @@ namespace ContentfulApp.Models.DTO
             if (AdditionalContentDescription != null)
             {
                 var html = new HtmlRenderer().ToHtml(AdditionalContentDescription).Result;
-                return html.ToString();
+                string htmlString = html.ToString();
+                return string.IsNullOrEmpty(htmlString) ? null : htmlString;
             }
             return null;
         }
