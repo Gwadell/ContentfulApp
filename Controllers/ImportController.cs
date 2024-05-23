@@ -47,6 +47,7 @@ namespace ContentfulApp.Controllers
 
             // Use EPPlus to read the Excel file
             var data = _excelImportService.ImportFromExcel(file);
+            bool anyUpdates = false;
 
             foreach (var sheet in data)
             {
@@ -66,7 +67,9 @@ namespace ContentfulApp.Controllers
                     var row = dataTable.Rows[rowIndex];
                     var id = row[0].ToString(); // Assuming the ID is in the first column
 
-                    if (contentType == "productListingPage")
+                    var exportDtoType = _dtoMappingService.GetExportDtoType(contentType);
+
+                    if (exportDtoType == typeof(FullExport))
                     {
                         var newEntry = MapRowToFullExport(row, headers);
 
@@ -126,8 +129,11 @@ namespace ContentfulApp.Controllers
 
                             await Task.Delay(2000);
 
-                            // Publish the updated entry
-                            var publishedEntry = await managementClient.PublishEntry(id, (int)updatedEntry.SystemProperties.Version);
+                            if (import.PublishChanges)
+                            {
+                                var publishedEntry = await managementClient.PublishEntry(id, (int)updatedEntry.SystemProperties.Version);
+                            }
+                            anyUpdates = true;
                         }
                         
                     }
@@ -187,16 +193,29 @@ namespace ContentfulApp.Controllers
 
                             await Task.Delay(2000);
 
-                            // Publish the updated entry
-                            var publishedEntry = await managementClient.PublishEntry(id, (int)updatedEntry.SystemProperties.Version);
+                            if (import.PublishChanges)
+                            {
+                                var publishedEntry = await managementClient.PublishEntry(id, (int)updatedEntry.SystemProperties.Version);
+                            }
+                            
+                            anyUpdates = true;
                         }
+
                     }
+
                 }
             }
-            return Ok();
+            if (anyUpdates)
+            {
+                return Ok("All entries updated successfully.");
+            }
+            else
+            {
+                return Ok("There were no entries to update in this Excelfile.");
+            }
         }
 
-        
+
 
         private RegularEntryDto MapRegularEntryToDto(Entry<dynamic> entry,string locale)
         {
@@ -218,29 +237,23 @@ namespace ContentfulApp.Controllers
             var dto = new FullEntryDto()
             {
                 Sys = entry.SystemProperties,
-                InternalName = entry.Fields.ContainsKey("internalName") ? entry.Fields["internalName"][locale].ToString() : null,
-                Name = entry.Fields.ContainsKey("name") ? entry.Fields["name"][locale].ToString() : null,
-                IsPrimaryCategory = entry.Fields.ContainsKey("isPrimaryCategory") ? bool.Parse(entry.Fields["isPrimaryCategory"][locale].ToString()) : false,
-                CategoryRank = entry.Fields.ContainsKey("categoryRank") ? int.Parse(entry.Fields["categoryRank"][locale].ToString()) : 0,
-                ShortDescription = entry.Fields.ContainsKey("shortDescription") ? entry.Fields["shortDescription"][locale].ToString() : null,
-                Filter = entry.Fields.ContainsKey("filter") ? JsonConvert.DeserializeObject<Filter>(entry.Fields["filter"][locale].ToString()) : null,
-                //AdditionalContentDescription = entry.Fields.ContainsKey("additionalContentDescription") ? JsonConvert.DeserializeObject<Document>(entry.Fields["additionalContentDescription"][locale].ToString()) : null,
-                Active = entry.Fields.ContainsKey("active") ? JsonConvert.DeserializeObject<List<string>>(entry.Fields["active"][locale].ToString()) : null,
-                CreateLinksOnProductPages = entry.Fields.ContainsKey("createLinksOnProductPages") ? bool.Parse(entry.Fields["createLinksOnProductPages"][locale].ToString()) : false,
-                UseAsFacet = entry.Fields.ContainsKey("useAsFacet") ? bool.Parse(entry.Fields["useAsFacet"][locale].ToString()) : false,
-                SeoInfo = entry.Fields.ContainsKey("seoInfo") ? JsonConvert.DeserializeObject<SeoInfo>(entry.Fields["seoInfo"][locale].ToString()) : null,
-                Metadata = entry.Fields.ContainsKey("$metadata") ? JsonConvert.DeserializeObject<ContentfulMetadata>(entry.Fields["$metadata"][locale].ToString()) : null,
-                Facets = entry.Fields.ContainsKey("facets") ? JsonConvert.DeserializeObject<List<string>>(entry.Fields["facets"][locale].ToString()) : null,
-                Slug = entry.Fields.ContainsKey("slug") ? entry.Fields["slug"][locale].ToString() : null,
-                Urls = entry.Fields.ContainsKey("urls") ? JsonConvert.DeserializeObject<List<List<string>>>(entry.Fields["urls"][locale].ToString()) : null
+                InternalName = entry.Fields.ContainsKey("internalName") && entry.Fields["internalName"][locale] != null ? entry.Fields["internalName"][locale].ToString() : null,
+                Name = entry.Fields.ContainsKey("name") && entry.Fields["name"][locale] != null ? entry.Fields["name"][locale].ToString() : null,
+                IsPrimaryCategory = entry.Fields.ContainsKey("isPrimaryCategory") && entry.Fields["isPrimaryCategory"][locale] != null ? bool.Parse(entry.Fields["isPrimaryCategory"][locale].ToString()) : false,
+                CategoryRank = entry.Fields.ContainsKey("categoryRank") && entry.Fields["categoryRank"][locale] != null ? int.Parse(entry.Fields["categoryRank"][locale].ToString()) : 0,
+                ShortDescription = entry.Fields.ContainsKey("shortDescription") && entry.Fields["shortDescription"][locale] != null ? entry.Fields["shortDescription"][locale].ToString() : null,
+                Filter = entry.Fields.ContainsKey("filter") && entry.Fields["filter"][locale] != null ? JsonConvert.DeserializeObject<Filter>(entry.Fields["filter"][locale].ToString()) : null,
+                Active = entry.Fields.ContainsKey("active") && entry.Fields["active"][locale] != null ? JsonConvert.DeserializeObject<List<string>>(entry.Fields["active"][locale].ToString()) : null,
+                CreateLinksOnProductPages = entry.Fields.ContainsKey("createLinksOnProductPages") && entry.Fields["createLinksOnProductPages"][locale] != null ? bool.Parse(entry.Fields["createLinksOnProductPages"][locale].ToString()) : false,
+                UseAsFacet = entry.Fields.ContainsKey("useAsFacet") && entry.Fields["useAsFacet"][locale] != null ? bool.Parse(entry.Fields["useAsFacet"][locale].ToString()) : false,
+                SeoInfo = entry.Fields.ContainsKey("seoInfo") && entry.Fields["seoInfo"][locale] != null ? JsonConvert.DeserializeObject<SeoInfo>(entry.Fields["seoInfo"][locale].ToString()) : null,
+                Metadata = entry.Fields.ContainsKey("$metadata") && entry.Fields["$metadata"][locale] != null ? JsonConvert.DeserializeObject<ContentfulMetadata>(entry.Fields["$metadata"][locale].ToString()) : null,
+                //Facets = entry.Fields.ContainsKey("facets") && entry.Fields["facets"][locale] != null ? JsonConvert.DeserializeObject<List<string>>(entry.Fields["facets"][locale].ToString()) : null,
+                Slug = entry.Fields.ContainsKey("slug") && entry.Fields["slug"][locale] != null ? entry.Fields["slug"][locale].ToString() : null,
+                Urls = entry.Fields.ContainsKey("urls") && entry.Fields["urls"][locale] != null ? JsonConvert.DeserializeObject<List<List<string>>>(entry.Fields["urls"][locale].ToString()) : null,
+                //AdditionalContentDescription = entry.Fields.ContainsKey("additionalContentDescription") && entry.Fields["additionalContentDescription"][locale] != null ? JsonConvert.DeserializeObject<Document>(entry.Fields["additionalContentDescription"][locale].ToString()) : null,
+                H1Title = entry.Fields.ContainsKey("h1Title") && entry.Fields["h1Title"][locale] != null ? entry.Fields["h1Title"][locale].ToString() : null
             };
-
-            // Check if the h1Title field exists for the given locale
-            if (entry.Fields.ContainsKey("h1Title") && entry.Fields["h1Title"].ContainsKey(locale))
-            {
-                dto.H1Title = entry.Fields["h1Title"][locale].ToString();
-            }
-
             return dto;
         }
 
@@ -359,6 +372,7 @@ namespace ContentfulApp.Controllers
             fullEntryDto.H1Title = fullExport.H1Title;
             fullEntryDto.Slug = fullExport.Slug;
             fullEntryDto.Urls = new List<List<string>> { new List<string> { fullExport.Urls } };
+            //fullEntryDto.Facets = new List<string> { fullExport.Facets };
             //fullEntryDto.SeoInfo = new SeoInfo { Title = fullExport.SeoTitle, Description = fullExport.SeoDescription };
             //tags och metadata?? 
 

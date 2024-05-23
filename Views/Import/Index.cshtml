@@ -1,6 +1,6 @@
 ﻿
 
-<form method="post" enctype="multipart/form-data" asp-controller="Import" asp-action="Import">
+@* <form method="post" enctype="multipart/form-data" asp-controller="Import" asp-action="Import">
     <div>
         <label>Access Token</label>
         <input type="text" name="accessToken" />
@@ -10,4 +10,128 @@
         <input type="file" name="file" />
     </div>
     <button type="submit">Import</button>
+</form> *@
+@model ContentfulApp.Models.ImportModel
+
+<style>
+    form div {
+        margin-bottom: 25px; 
+    }
+
+    input[type="text"], input[type="password"] {
+        width: 50%;
+    }
+
+    button[type="submit"] {
+        margin-top: 20px;
+        background-color: darkorange;
+    }
+
+    label {
+        font-weight: bold;
+    }
+
+    .dropdown {
+        width: 250px;
+    }
+
+    .info-box {
+        padding: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #888;
+        background-color: #f9f9f9;
+        width: 60%; 
+    }
+
+      #loading span {
+        animation: loading 1s infinite;
+    }
+
+    #loading span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    #loading span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @@keyframes loading {
+        0% {
+            opacity: 0;
+        }
+
+        50% {
+            opacity: 1;
+        }
+
+        100% {
+            opacity: 0;
+        }
+    }
+</style>
+
+<form id="importForm" method="post" enctype="multipart/form-data" asp-controller="Import" asp-action="Import">
+    <div class="info-box">
+        The file you import must have the same structure as the file you exported. The only thing you need to do is to modify the values you want.
+    </div>
+    <div>
+        <label>Environment</label>
+        @Html.DropDownListFor(model => model.Environment, new SelectList(new List<string>() { "Choose environment", "dev", "stage" }), new { @class = "form-control dropdown" })
+    </div>
+    <div>
+        <label>Space ID</label>
+        @Html.DropDownListFor(model => model.SpaceId, new SelectList(new List<KeyValuePair<string, string>>()
+        {
+            new KeyValuePair<string, string>("Choose space", ""),
+            new KeyValuePair<string, string>("Nordic Nest mainsite", "p7vzp7ftmsr1")
+        }, "Value", "Key"), new { @class = "form-control dropdown" })
+    </div>
+    <div>
+        <label>Access Token</label>
+        <input type="password" name="accessToken" />
+    </div>
+    <div>
+        <label>Excel File</label>
+        <input type="file" name="file" />
+    </div>
+    <div>
+        <input type="checkbox" name="PublishChanges" checked="checked" />
+        <label>Publish Changes</label>
+    </div>
+    <button type="submit">Import</button>
 </form>
+
+<div id="loading" style="display:none;">Loading<span>.</span><span>.</span><span>.</span></div>
+<div id="success" style="display:none;"></div>
+
+@section scripts {
+    <script>
+        $(function () {
+            $('#importForm').submit(function (event) {
+                event.preventDefault();
+
+                $('#loading').show();
+
+                var publishChangesChecked = $('#importForm input[name="PublishChanges"]').prop('checked');
+
+                var formData = new FormData($(this)[0]);
+
+                $.ajax({
+                    url: $(this).attr('action'),
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        $('#loading').hide();
+                        $('#success').text(response).show();
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        $('#loading').hide();
+                        alert('An error occurred: ' + errorThrown);
+                    }
+                });
+            });
+        });
+    </script>
+}

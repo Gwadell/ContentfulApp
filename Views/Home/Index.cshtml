@@ -1,1 +1,20 @@
 ﻿
+
+
+<style>
+    .action-button {
+        background-color: darkorange;
+        color: black;
+    }
+
+    .mr-3 {
+        margin-right: 40px;
+    }
+</style>
+<div class="text-center">
+    <h1 class="display-4">Choose your action</h1>
+    <div class="mt-5">
+        <a asp-controller="Export" asp-action="Index" class="btn btn-lg action-button mr-3">Export content from Contentful</a>
+        <a asp-controller="Import" asp-action="Index" class="btn btn-lg action-button mr-3">Import content to Contentful</a>
+    </div>
+</div>

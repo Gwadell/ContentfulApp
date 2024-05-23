@@ -101,35 +101,6 @@ namespace ContentfulApp.Services
             return localesCollection;
         }
 
-        public async Task UpdateContent(string contentType, string locale, IEnumerable<object> data, string accessToken)
-        {
-            //// Create a management client with the provided access token
-            //var managementClient = new ContentfulManagementClient(accessToken, ;
-
-            //// For each object in the data collection
-            //foreach (var item in data)
-            //{
-            //    // Convert the object to a dictionary
-            //    var fields = item as IDictionary<string, object>;
-
-            //    // Create a new Entry<dynamic> object
-            //    var entry = new Entry<dynamic>();
-
-            //    // Set the fields of the entry
-            //    entry.Fields = new Dictionary<string, object>();
-
-            //    // For each field in the dictionary
-            //    foreach (var field in fields)
-            //    {
-            //        // Add the field to the entry
-            //        entry.Fields.Add(field.Key, field.Value);
-            //    }
-
-            //    // Update the entry in Contentful
-            //    await managementClient.UpdateEntry(entry, contentType, locale);
-            //}
-        }
-
     }
 
     public interface IContentfulService
@@ -140,9 +111,6 @@ namespace ContentfulApp.Services
         Task<IEnumerable<object>> GetEntriesForContentTypeAndLocale(ContentfulClient client, string contentType, string locale);
 
         Task<IEnumerable<Locale>> GetLocales(string accessToken, string environment, string spaceId);
-
-        Task UpdateContent(string contentType, string locale, IEnumerable<object> data, string accessToken);
-
     }
 }
 

@@ -20,15 +20,16 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-dark @(ViewContext.RouteData.Values["Controller"].ToString() == "Home" ? "active" : "")" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Import" asp-action="Index">Import</a>
+                            <a class="nav-link text-dark @(ViewContext.RouteData.Values["Controller"].ToString() == "Import" ? "active" : "")" asp-area="" asp-controller="Import" asp-action="Index">Import</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Export" asp-action="Index">Export</a>
+                            <a class="nav-link text-dark @(ViewContext.RouteData.Values["Controller"].ToString() == "Export" ? "active" : "")" asp-area="" asp-controller="Export" asp-action="Index">Export</a>
                         </li>
                     </ul>
+
                 </div>
             </div>
         </nav>
