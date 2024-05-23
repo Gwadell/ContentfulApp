@@ -94,10 +94,12 @@
         <label>Excel File</label>
         <input type="file" name="file" />
     </div>
-    <div>
-        <input type="checkbox" name="PublishChanges" checked="checked" />
-        <label>Publish Changes</label>
+    <div class="checkbox">
+        <label>
+            <input type="checkbox" asp-for="PublishChanges" checked="checked" /> Publish Changes
+        </label>
     </div>
+    
     <button type="submit">Import</button>
 </form>
 
