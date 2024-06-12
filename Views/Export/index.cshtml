@@ -56,13 +56,16 @@
 @using (Html.BeginForm("Index", "Export", FormMethod.Post, new { id = "exportForm" } ))
 {
     @Html.LabelFor(model => model.Environment)
-    @Html.DropDownListFor(model => model.Environment, new SelectList(new List<string>() { "Choose environment", "dev", "stage" }), new { @class = "form-control dropdown" })
+    @Html.DropDownListFor(model => model.Environment, new SelectList(new List<string>() { "Choose environment", "dev", "stage", "prod" }), new { @class = "form-control dropdown" })
     <br>
     @Html.LabelFor(model => model.SpaceId)
     @Html.DropDownListFor(model => model.SpaceId, new SelectList(new List<KeyValuePair<string, string>>()
     {
     new KeyValuePair<string, string>("Choose space", ""),
-    new KeyValuePair<string, string>("Nordic Nest mainsite", "p7vzp7ftmsr1")
+    new KeyValuePair<string, string>("Nordic Nest mainsite", "p7vzp7ftmsr1"),
+    new KeyValuePair<string, string>("KitchenTime", "p7vzp7ftmsr1"),
+    new KeyValuePair<string, string>("Lightshop", "p7vzp7ftmsr1"),
+    new KeyValuePair<string, string>("Svenssons", "p7vzp7ftmsr1")
     }, "Value", "Key"), new { @class = "form-control dropdown" })
     <br>
     @Html.HiddenFor(model => model.Locales, new { id = "localesInput" })
@@ -71,21 +74,21 @@
         <input type="checkbox" id="allLocales" name="locales" value="yo,zh-CN,da-DK,nl-NL,en-US,fi-FI,fr-FR,de-DE,el-GR,it-IT,ja-JP,ko-KR,nb-NO,pl-PL,pt-PT,es-ES,sv-SE"> All Locales<br>
         <input type="checkbox" id="swedishSweden" name="locales" value="sv-SE"> Swedish (Sweden)<br>
         <input type="checkbox" id="chineseSimplifiedChina" name="locales" value="zh-CN"> Chinese (Simplified, China)<br>
-        <input type="checkbox" id="danishDenmark" name="locales" value="da-DK"> Danish (Denmark)<br>
+         <input type="checkbox" id="danishDenmark" name="locales" value="da-DK"> Danish (Denmark)<br>
         <input type="checkbox" id="dutchNetherlands" name="locales" value="nl-NL"> Dutch (Netherlands)<br>
         <input type="checkbox" id="englishUnitedStates" name="locales" value="en-US"> English (United States)<br>
-        <input type="checkbox" id="finnishFinland" name="locales" value="fi-FI"> Finnish (Finland)<br>
+         <input type="checkbox" id="finnishFinland" name="locales" value="fi-FI"> Finnish (Finland)<br>
         <input type="checkbox" id="frenchFrance" name="locales" value="fr-FR"> French (France)<br>
         <input type="checkbox" id="germanGermany" name="locales" value="de-DE"> German (Germany)<br>
-        <input type="checkbox" id="greekGreece" name="locales" value="el-GR"> Greek (Greece)<br>
+         <input type="checkbox" id="greekGreece" name="locales" value="el-GR"> Greek (Greece)<br>
         <input type="checkbox" id="italianItaly" name="locales" value="it-IT"> Italian (Italy)<br>
         <input type="checkbox" id="japaneseJapan" name="locales" value="ja-JP"> Japanese (Japan)<br>
         <input type="checkbox" id="koreanKorea" name="locales" value="ko-KR"> Korean (Korea)<br>
-        <input type="checkbox" id="norwegianBokmalNorway" name="locales" value="nb-NO"> Norwegian Bokmål (Norway)<br>
-        <input type="checkbox" id="polishPoland" name="locales" value="pl-PL"> Polish (Poland)<br>
+       <input type="checkbox" id="norwegianBokmalNorway" name="locales" value="nb-NO"> Norwegian Bokmål (Norway)<br>
+         <input type="checkbox" id="polishPoland" name="locales" value="pl-PL"> Polish (Poland)<br>
         <input type="checkbox" id="portuguesePortugal" name="locales" value="pt-PT"> Portuguese (Portugal)<br>
-        <input type="checkbox" id="spanishSpainInternationalSort" name="locales" value="es-ES"> Spanish (Spain, International Sort)<br>
-        <input type="checkbox" id="yoruba" name="locales" value="yo"> Yoruba<br>
+         <input type="checkbox" id="spanishSpainInternationalSort" name="locales" value="es-ES"> Spanish (Spain, International Sort)<br>
+         <input type="checkbox" id="yoruba" name="locales" value="yo"> Yoruba<br>
     </div>
 
     @Html.HiddenFor(model => model.ContentTypesId, new { id = "contentTypesInput" })
@@ -169,11 +172,15 @@
                     method: 'POST',
                     data: $(this).serialize(),
                     success: function (response) {
+                        console.log(response); 
                         $('#loading').hide();
                         $('#error').hide();
                         var downloadLink = $('#downloadLink');
                         downloadLink.show();
-                        $('#excelDownloadLink').attr('href', response);
+                        var excelDownloadLink = $('#excelDownloadLink');
+                        excelDownloadLink.attr('href', response);
+                        excelDownloadLink.text('Click here to download the excel file');
+                        excelDownloadLink.attr('target', '_blank');
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
                         $('#loading').hide();
